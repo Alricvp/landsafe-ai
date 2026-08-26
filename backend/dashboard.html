@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Landsafe AI - Tilt Monitor</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #0a0a1a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      padding: 16px 24px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header h1 {
+      font-size: 1.4rem;
+      color: #00d4ff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-badge {
+      font-size: 0.75rem;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .badge-safe { background: #0d4a2e; color: #00ff88; border: 1px solid #00ff88; }
+    .badge-warning { background: #4a3a0d; color: #ffaa00; border: 1px solid #ffaa00; animation: pulse-yellow 1s infinite; }
+    .badge-danger { background: #4a0d0d; color: #ff3333; border: 1px solid #ff3333; animation: pulse-red 0.5s infinite; }
+
+    @keyframes pulse-yellow {
+      0%, 100% { opacity: 1; box-shadow: 0 0 10px rgba(255, 170, 0, 0.3); }
+      50% { opacity: 0.7; box-shadow: 0 0 20px rgba(255, 170, 0, 0.6); }
+    }
+
+    @keyframes pulse-red {
+      0%, 100% { opacity: 1; box-shadow: 0 0 10px rgba(255, 51, 51, 0.3); }
+      50% { opacity: 0.7; box-shadow: 0 0 30px rgba(255, 51, 51, 0.8); }
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 20px;
+      padding: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 768px) {
+      .main { grid-template-columns: 1fr; padding: 16px; }
+    }
+
+    .gauge-container {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      border-radius: 16px;
+      padding: 32px;
+      border: 1px solid #333;
+      text-align: center;
+    }
+
+    .gauge-wrapper {
+      position: relative;
+      width: 280px;
+      height: 160px;
+      margin: 0 auto 24px;
+    }
+
+    .gauge-bg {
+      width: 280px;
+      height: 140px;
+      border-radius: 140px 140px 0 0;
+      background: #1a1a2e;
+      border: 8px solid #333;
+      border-bottom: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .gauge-needle {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 4px;
+      height: 120px;
+      background: linear-gradient(to top, #ffffff, #00d4ff);
+      transform-origin: bottom center;
+      transform: translateX(-50%) rotate(0deg);
+      transition: transform 0.5s ease-out;
+      border-radius: 2px;
+      box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+    }
+
+    .gauge-center {
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 16px;
+      height: 16px;
+      background: #00d4ff;
+      border-radius: 50%;
+      z-index: 2;
+    }
+
+    .gauge-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: #888;
+    }
+
+    .gauge-value {
+      font-size: 3.5rem;
+      font-weight: 700;
+      margin: 16px 0;
+      transition: color 0.3s;
+    }
+
+    .gauge-value.safe { color: #00ff88; }
+    .gauge-value.warning { color: #ffaa00; }
+    .gauge-value.danger { color: #ff3333; }
+
+    .gauge-unit {
+      font-size: 1.2rem;
+      color: #888;
+      margin-top: -12px;
+    }
+
+    .tilt-label {
+      font-size: 0.9rem;
+      color: #888;
+      margin-top: 8px;
+    }
+
+    .alert-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .alert-overlay.active-red {
+      display: block;
+      background: radial-gradient(ellipse at center, rgba(255, 0, 0, 0.15) 0%, transparent 70%);
+      animation: alert-flash 0.8s infinite;
+    }
+
+    .alert-overlay.active-yellow {
+      display: block;
+      background: radial-gradient(ellipse at center, rgba(255, 170, 0, 0.1) 0%, transparent 70%);
+      animation: alert-flash 1.5s infinite;
+    }
+
+    @keyframes alert-flash {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #333;
+    }
+
+    .card h3 {
+      font-size: 0.85rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #222;
+    }
+
+    .info-row:last-child { border-bottom: none; }
+
+    .info-label { color: #888; font-size: 0.85rem; }
+    .info-value { color: #e0e0e0; font-weight: 600; }
+
+    .log-list {
+      max-height: 250px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #333 transparent;
+    }
+
+    .log-entry {
+      padding: 6px 0;
+      border-bottom: 1px solid #222;
+      font-size: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .log-time { color: #666; white-space: nowrap; }
+    .log-tilt { font-weight: 600; white-space: nowrap; }
+    .log-tilt.safe { color: #00ff88; }
+    .log-tilt.warning { color: #ffaa00; }
+    .log-tilt.danger { color: #ff3333; }
+
+    .sound-toggle {
+      background: #333;
+      border: 1px solid #555;
+      color: #e0e0e0;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+
+    .sound-toggle:hover { background: #444; }
+    .sound-toggle.active { background: #1a3a1a; border-color: #00ff88; }
+
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ff3333;
+    }
+
+    .dot.connected { background: #00ff88; }
+
+    .threshold-visual {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .threshold-bar {
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      background: #333;
+    }
+
+    .threshold-bar.green { background: #00ff88; }
+    .threshold-bar.yellow { background: #ffaa00; }
+    .threshold-bar.red { background: #ff3333; }
+
+    .warning-banner {
+      display: none;
+      padding: 12px 20px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .warning-banner.yellow {
+      display: block;
+      background: linear-gradient(90deg, #4a3a0d, #6b5510, #4a3a0d);
+      color: #ffaa00;
+      border-bottom: 2px solid #ffaa00;
+      animation: banner-flash 1.5s infinite;
+    }
+
+    .warning-banner.red {
+      display: block;
+      background: linear-gradient(90deg, #4a0d0d, #6b1010, #4a0d0d);
+      color: #ff3333;
+      border-bottom: 2px solid #ff3333;
+      animation: banner-flash 0.5s infinite;
+    }
+
+    @keyframes banner-flash {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+  </style>
+</head>
+<body>
+  <div id="alert-overlay" class="alert-overlay"></div>
+  <div id="warning-banner" class="warning-banner"></div>
+
+  <div class="header">
+    <h1>🌍 Landsafe AI</h1>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div class="connection-status">
+        <div id="conn-dot" class="dot"></div>
+        <span id="conn-text">Connecting...</span>
+      </div>
+      <span id="status-badge" class="status-badge badge-safe">SAFE</span>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="gauge-container">
+      <div class="gauge-wrapper">
+        <div class="gauge-bg">
+          <div class="gauge-needle" id="needle"></div>
+          <div class="gauge-center"></div>
+        </div>
+      </div>
+      <div class="gauge-labels">
+        <span>-30° DANGER</span>
+        <span>0° LEVEL</span>
+        <span>+30° SAFE</span>
+      </div>
+      <div class="gauge-value safe" id="tilt-value">0.00°</div>
+      <div class="gauge-unit">Tilt Angle</div>
+      <div class="tilt-label" id="tilt-label">Waiting for sensor data...</div>
+      <div class="threshold-visual">
+        <div class="threshold-bar red"></div>
+        <div class="threshold-bar red"></div>
+        <div class="threshold-bar yellow"></div>
+        <div class="threshold-bar yellow"></div>
+        <div class="threshold-bar green"></div>
+        <div class="threshold-bar green"></div>
+        <div class="threshold-bar green"></div>
+        <div class="threshold-bar yellow"></div>
+        <div class="threshold-bar yellow"></div>
+        <div class="threshold-bar red"></div>
+        <div class="threshold-bar red"></div>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="card">
+        <h3>📡 Sensor Info</h3>
+        <div class="info-row">
+          <span class="info-label">Device</span>
+          <span class="info-value" id="device-id">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Status</span>
+          <span class="info-value" id="device-status">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Last Update</span>
+          <span class="info-value" id="last-update">—</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>🔔 Alert Sound</h3>
+        <button id="sound-btn" class="sound-toggle" onclick="toggleSound()">
+          <span id="sound-icon">🔇</span>
+          <span id="sound-text">Enable Siren</span>
+        </button>
+        <p style="font-size: 0.75rem; color: #666; margin-top: 8px;">
+          Red alert triggers a loud siren on your device
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>📊 Live Log</h3>
+        <div class="log-list" id="log-list">
+          <div class="log-entry">
+            <span class="log-time">--:--</span>
+            <span class="log-tilt safe">Waiting for data...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---- Config ----
+    // These get replaced by server.py when deployed to Render
+    let WS_URL = `ws://${window.location.host}/ws`;
+    let HISTORY_URL = `http://${window.location.host}/api/history`;
+
+    // ---- State ----
+    let soundEnabled = false;
+    let audioCtx = null;
+    let sirenOsc = null;
+    let sirenGain = null;
+    let lastStatus = 'safe';
+
+    // ---- Elements ----
+    const needle = document.getElementById('needle');
+    const tiltValue = document.getElementById('tilt-value');
+    const tiltLabel = document.getElementById('tilt-label');
+    const statusBadge = document.getElementById('status-badge');
+    const connDot = document.getElementById('conn-dot');
+    const connText = document.getElementById('conn-text');
+    const deviceId = document.getElementById('device-id');
+    const deviceStatus = document.getElementById('device-status');
+    const lastUpdate = document.getElementById('last-update');
+    const logList = document.getElementById('log-list');
+    const alertOverlay = document.getElementById('alert-overlay');
+    const warningBanner = document.getElementById('warning-banner');
+
+    // ---- WebSocket ----
+    let ws;
+    let reconnectTimer;
+
+    function connectWebSocket() {
+      ws = new WebSocket(WS_URL);
+
+      ws.onopen = () => {
+        connDot.classList.add('connected');
+        connText.textContent = 'Live';
+        console.log('WebSocket connected');
+      };
+
+      ws.onmessage = (event) => {
+        if (event.data === 'pong') return;
+        const data = JSON.parse(event.data);
+        updateDashboard(data);
+      };
+
+      ws.onclose = () => {
+        connDot.classList.remove('connected');
+        connText.textContent = 'Reconnecting...';
+        reconnectTimer = setTimeout(connectWebSocket, 3000);
+      };
+
+      ws.onerror = () => {
+        ws.close();
+      };
+
+      // Ping to keep alive
+      setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send('ping');
+        }
+      }, 30000);
+    }
+
+    // ---- Update Dashboard ----
+    function updateDashboard(data) {
+      const { tilt, status, device_id, timestamp } = data;
+
+      // Update gauge needle (-30 to +30 degrees mapped to -90 to +90 rotation)
+      const clampedTilt = Math.max(-30, Math.min(30, tilt));
+      const rotation = (clampedTilt / 30) * 90;
+      needle.style.transform = `translateX(-50%) rotate(${-rotation}deg)`;
+
+      // Update value display
+      tiltValue.textContent = `${tilt.toFixed(2)}°`;
+      tiltValue.className = `gauge-value ${status}`;
+
+      // Update labels
+      tiltLabel.textContent = `Device: ${device_id}`;
+
+      // Status badge
+      statusBadge.textContent = status.toUpperCase();
+      statusBadge.className = `status-badge badge-${status}`;
+
+      // Info card
+      deviceId.textContent = device_id;
+      deviceStatus.textContent = status.toUpperCase();
+      deviceStatus.style.color = status === 'danger' ? '#ff3333' : status === 'warning' ? '#ffaa00' : '#00ff88';
+
+      const time = new Date(timestamp);
+      lastUpdate.textContent = time.toLocaleTimeString();
+
+      // Alert overlay
+      alertOverlay.className = 'alert-overlay';
+      warningBanner.className = 'warning-banner';
+      if (status === 'danger') {
+        alertOverlay.classList.add('active-red');
+        warningBanner.className = 'warning-banner red';
+        warningBanner.textContent = '⚠️ DANGER — GROUND SHIFT DETECTED';
+        if (soundEnabled) startSiren();
+      } else if (status === 'warning') {
+        alertOverlay.classList.add('active-yellow');
+        warningBanner.className = 'warning-banner yellow';
+        warningBanner.textContent = '⚠ WARNING — TILT ANOMALY DETECTED';
+        if (soundEnabled) startSiren();
+      } else {
+        stopSiren();
+      }
+
+      // Add to log
+      addLogEntry(tilt, status, timestamp);
+      lastStatus = status;
+    }
+
+    // ---- Log ----
+    function addLogEntry(tilt, status, timestamp) {
+      const time = new Date(timestamp).toLocaleTimeString();
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.innerHTML = `
+        <span class="log-time">${time}</span>
+        <span class="log-tilt ${status}">${tilt.toFixed(2)}° ${status === 'danger' ? '🔴' : status === 'warning' ? '🟡' : '🟢'}</span>
+      `;
+      logList.insertBefore(entry, logList.firstChild);
+
+      while (logList.children.length > 50) {
+        logList.removeChild(logList.lastChild);
+      }
+    }
+
+    // ---- Sound (Siren) ----
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function startSiren() {
+      initAudio();
+      if (sirenOsc) return;
+
+      sirenOsc = audioCtx.createOscillator();
+      sirenGain = audioCtx.createGain();
+
+      sirenOsc.type = 'sawtooth';
+      sirenOsc.frequency.setValueAtTime(800, audioCtx.currentTime);
+      sirenOsc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.3);
+      sirenOsc.frequency.linearRampToValueAtTime(600, audioCtx.currentTime + 0.6);
+
+      sirenGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+
+      sirenOsc.connect(sirenGain);
+      sirenGain.connect(audioCtx.destination);
+
+      sirenOsc.start();
+
+      sirenOsc.onended = () => {
+        sirenOsc = null;
+        if (lastStatus !== 'safe' && soundEnabled) {
+          startSiren();
+        }
+      };
+    }
+
+    function stopSiren() {
+      if (sirenOsc) {
+        try { sirenOsc.stop(); } catch(e) {}
+        sirenOsc = null;
+      }
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      const btn = document.getElementById('sound-btn');
+      const icon = document.getElementById('sound-icon');
+      const text = document.getElementById('sound-text');
+
+      if (soundEnabled) {
+        btn.classList.add('active');
+        icon.textContent = '🔊';
+        text.textContent = 'Siren Active';
+        initAudio();
+        if (lastStatus !== 'safe') startSiren();
+      } else {
+        btn.classList.remove('active');
+        icon.textContent = '🔇';
+        text.textContent = 'Enable Siren';
+        stopSiren();
+      }
+    }
+
+    // ---- Load history on start ----
+    async function loadHistory() {
+      try {
+        const res = await fetch(HISTORY_URL);
+        const json = await res.json();
+        if (json.data && json.data.length > 0) {
+          updateDashboard(json.data[json.data.length - 1]);
+          json.data.slice(-20).forEach(d => addLogEntry(d.tilt, d.status, d.timestamp));
+        }
+      } catch (e) {
+        console.log('No history available');
+      }
+    }
+
+    // ---- Init ----
+    connectWebSocket();
+    loadHistory();
+  </script>
+</body>
+</html>
