@@ -400,17 +400,16 @@
   </div>
 
   <script>
-    // ---- Config ----
-    // These get replaced by server.py when deployed to Render
-    let WS_URL = `ws://${window.location.host}/ws`;
-    let HISTORY_URL = `http://${window.location.host}/api/history`;
+    // ---- Config - uses polling instead of WebSocket for Render compatibility ----
+    const API_URL = `${window.location.origin}/api/latest`;
+    const HISTORY_URL = `${window.location.origin}/api/history`;
 
     // ---- State ----
     let soundEnabled = false;
     let audioCtx = null;
     let sirenOsc = null;
-    let sirenGain = null;
     let lastStatus = 'safe';
+    let lastTimestamp = '';
 
     // ---- Elements ----
     const needle = document.getElementById('needle');
@@ -426,41 +425,25 @@
     const alertOverlay = document.getElementById('alert-overlay');
     const warningBanner = document.getElementById('warning-banner');
 
-    // ---- WebSocket ----
-    let ws;
-    let reconnectTimer;
+    // ---- Poll for new data every 1 second ----
+    async function pollData() {
+      try {
+        const res = await fetch(API_URL);
+        const json = await res.json();
 
-    function connectWebSocket() {
-      ws = new WebSocket(WS_URL);
-
-      ws.onopen = () => {
-        connDot.classList.add('connected');
-        connText.textContent = 'Live';
-        console.log('WebSocket connected');
-      };
-
-      ws.onmessage = (event) => {
-        if (event.data === 'pong') return;
-        const data = JSON.parse(event.data);
-        updateDashboard(data);
-      };
-
-      ws.onclose = () => {
-        connDot.classList.remove('connected');
-        connText.textContent = 'Reconnecting...';
-        reconnectTimer = setTimeout(connectWebSocket, 3000);
-      };
-
-      ws.onerror = () => {
-        ws.close();
-      };
-
-      // Ping to keep alive
-      setInterval(() => {
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send('ping');
+        if (json.data) {
+          // Only update if we have new data
+          if (json.data.timestamp !== lastTimestamp) {
+            lastTimestamp = json.data.timestamp;
+            updateDashboard(json.data);
+            connDot.classList.add('connected');
+            connText.textContent = 'Live';
+          }
         }
-      }, 30000);
+      } catch (e) {
+        connDot.classList.remove('connected');
+        connText.textContent = 'Offline';
+      }
     }
 
     // ---- Update Dashboard ----
@@ -605,8 +588,8 @@
     }
 
     // ---- Init ----
-    connectWebSocket();
     loadHistory();
+    setInterval(pollData, 1000);  // Poll every 1 second
   </script>
 </body>
 </html>
