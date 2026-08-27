@@ -337,9 +337,9 @@
         </div>
       </div>
       <div class="gauge-labels">
-        <span>-30° DANGER</span>
+        <span>40°+ DANGER</span>
         <span>0° LEVEL</span>
-        <span>+30° SAFE</span>
+        <span>10°+ WARN</span>
       </div>
       <div class="gauge-value safe" id="tilt-value">0.00°</div>
       <div class="gauge-unit">Tilt Angle</div>
@@ -405,7 +405,7 @@
     const HISTORY_URL = `${window.location.origin}/api/history`;
 
     // ---- State ----
-    let soundEnabled = false;
+    let soundEnabled = true;  // Auto-enabled for danger alerts
     let audioCtx = null;
     let sirenOsc = null;
     let lastStatus = 'safe';
@@ -481,7 +481,8 @@
         alertOverlay.classList.add('active-red');
         warningBanner.className = 'warning-banner red';
         warningBanner.textContent = '⚠️ DANGER — GROUND SHIFT DETECTED';
-        if (soundEnabled) startSiren();
+        soundEnabled = true;
+        startSiren();
       } else if (status === 'warning') {
         alertOverlay.classList.add('active-yellow');
         warningBanner.className = 'warning-banner yellow';
@@ -531,7 +532,7 @@
       sirenOsc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.3);
       sirenOsc.frequency.linearRampToValueAtTime(600, audioCtx.currentTime + 0.6);
 
-      sirenGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      sirenGain.gain.setValueAtTime(1.0, audioCtx.currentTime);  // Max volume
 
       sirenOsc.connect(sirenGain);
       sirenGain.connect(audioCtx.destination);
