@@ -314,7 +314,7 @@
 <body>
   <div id="alert-overlay" class="alert-overlay"></div>
   <div id="warning-banner" class="warning-banner"></div>
-  <div id="enable-sound-banner" class="enable-sound-banner">🔊 TAP TO ENABLE SIREN</div>
+
 
   <div class="header">
     <h1>🌍 Landsafe AI</h1>
@@ -377,15 +377,22 @@
       </div>
 
       <div class="card">
-        <h3>🔔 Siren Control</h3>
-        <button id="sound-btn" class="sound-toggle" onclick="toggleSound()">
+        <h3>🔔 Alert Controls</h3>
+        <button id="sound-btn" class="sound-toggle" onclick="toggleSound()" style="margin-bottom:8px;">
           <span class="sound-left">
             <span id="sound-icon">🔇</span>
             <span id="sound-text">Siren OFF</span>
           </span>
           <span class="sound-right" id="sound-status" style="color:#ff3333;">●</span>
         </button>
-        <p class="sound-hint">Siren auto-plays when danger (>40°). Toggle to mute/unmute.</p>
+        <button id="vibrate-btn" class="sound-toggle" onclick="toggleVibrate()">
+          <span class="sound-left">
+            <span id="vibrate-icon">📳</span>
+            <span id="vibrate-text">Vibrate OFF</span>
+          </span>
+          <span class="sound-right" id="vibrate-status" style="color:#ff3333;">●</span>
+        </button>
+        <p class="sound-hint">Toggle siren and vibration for alerts.</p>
       </div>
 
       <div class="card">
@@ -405,6 +412,7 @@
     const HISTORY_URL = `${window.location.origin}/api/history`;
 
     let soundEnabled = false;
+    let vibrateEnabled = false;
     let audioCtx = null;
     let sirenOsc = null;
     let sirenGain = null;
@@ -427,7 +435,6 @@
     // ---- Enable audio on first click ----
     function enableAudio() {
       initAudio();
-      document.getElementById('enable-sound-banner').style.display = 'none';
       document.removeEventListener('click', enableAudio);
       document.removeEventListener('touchstart', enableAudio);
     }
@@ -479,20 +486,15 @@
         warningBanner.className = 'warning-banner red';
         warningBanner.textContent = '⚠️ DANGER — GROUND SHIFT DETECTED';
         if (audioCtx && soundEnabled) startSiren();
-        // Vibrate phone: pattern [vibrate, pause, vibrate, pause...]
-        if (navigator.vibrate) {
-          navigator.vibrate([300, 100, 300, 100, 300, 100, 500]);
-        }
+        if (vibrateEnabled && navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 300, 100, 500]);
       } else if (status === 'warning') {
         alertOverlay.classList.add('active-yellow');
         warningBanner.className = 'warning-banner yellow';
         warningBanner.textContent = '⚠ WARNING — TILT ANOMALY DETECTED';
-        if (navigator.vibrate) {
-          navigator.vibrate([200, 200, 200]);
-        }
+        if (vibrateEnabled && navigator.vibrate) navigator.vibrate([200, 200, 200]);
       } else {
         stopSiren();
-        if (navigator.vibrate) navigator.vibrate(0);  // Stop vibration
+        if (navigator.vibrate) navigator.vibrate(0);
       }
 
       addLogEntry(tilt, status, timestamp);
@@ -568,6 +570,28 @@
           json.data.slice(-20).forEach(d => addLogEntry(d.tilt, d.status, d.timestamp));
         }
       } catch (e) {}
+    }
+
+    function toggleVibrate() {
+      vibrateEnabled = !vibrateEnabled;
+      const btn = document.getElementById('vibrate-btn');
+      const icon = document.getElementById('vibrate-icon');
+      const text = document.getElementById('vibrate-text');
+      const status = document.getElementById('vibrate-status');
+
+      if (vibrateEnabled) {
+        btn.classList.add('active');
+        icon.textContent = '📳';
+        text.textContent = 'Vibrate ON';
+        status.style.color = '#00ff88';
+        if (navigator.vibrate) navigator.vibrate(200);  // Test vibration
+      } else {
+        btn.classList.remove('active');
+        icon.textContent = '📴';
+        text.textContent = 'Vibrate OFF';
+        status.style.color = '#ff3333';
+        if (navigator.vibrate) navigator.vibrate(0);
+      }
     }
 
     loadHistory();
