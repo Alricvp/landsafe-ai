@@ -16,14 +16,11 @@
 #include <Wire.h>
 
 // ---- WiFi Config ----
-const char* WIFI_SSID = "YOUR_WIFI_NAME";
-const char* WIFI_PASS = "YOUR_WIFI_PASSWORD";
+const char* WIFI_SSID = "Redmi Note 6 Pro";
+const char* WIFI_PASS = "";
 
 // ---- Backend URL ----
-// Change to your server's public IP or domain
-const char* SERVER_URL = "http://YOUR_SERVER_IP:8000/api/tilt";
-// Example: "http://192.168.1.100:8000/api/tilt"
-// For public: "http://yourdomain.com:8000/api/tilt"
+const char* SERVER_URL = "https://landsafe-ai.onrender.com/api/tilt";
 
 // ---- Device ID ----
 const char* DEVICE_ID = "sensor-001";
@@ -41,17 +38,28 @@ const char* DEVICE_ID = "sensor-001";
 #define REG_DATA_FORMAT    0x31
 #define REG_DATAX0         0x32
 
-#define SENSITIVITY 0.0039f  // +/- 2g -> 3.9 mg/LSB
+#define SENSITIVITY 0.0039f
 
-// ---- Alert thresholds ----
-#define TILT_YELLOW  2.0    // Warning when tilt > 2°
-#define TILT_RED    -2.0    // Danger when tilt < -2°
+// ---- Alert thresholds (wider dead zone) ----
+#define TILT_YELLOW  3.0
+#define TILT_RED    -3.0
+#define DEAD_ZONE    1.5   // Ignore small noise below this
 
 // LED
 #define LED_BUILTIN_PIN 2
-
-// ---- WiFi Status LED ----
 #define WIFI_LED_PIN 4
+
+// ---- Struct ----
+struct AccelData {
+  float x;
+  float y;
+  float z;
+};
+
+// ---- Calibration reference (set during calibration) ----
+float refX = 0.0;
+float refY = 0.0;
+float refZ = 0.0;
 
 // ---------- I2C helpers ----------
 
@@ -90,19 +98,17 @@ bool initADXL345() {
   }
   Serial.println("ADXL345 detected");
 
-  writeRegister(REG_DATA_FORMAT, 0x08);  // Full res, +/- 2g
-  writeRegister(REG_BW_RATE, 0x0A);      // 100Hz
+  writeRegister(REG_DATA_FORMAT, 0x08);
+  writeRegister(REG_BW_RATE, 0x0A);
   writeRegister(REG_OFSX, 0x00);
   writeRegister(REG_OFSY, 0x00);
   writeRegister(REG_OFSZ, 0x00);
-  writeRegister(REG_POWER_CTL, 0x08);    // Measure mode
+  writeRegister(REG_POWER_CTL, 0x08);
 
   return true;
 }
 
 // ---------- Read accel ----------
-
-struct AccelData { float x, y, z; };
 
 AccelData readAccel() {
   uint8_t buffer[6];
@@ -112,16 +118,87 @@ AccelData readAccel() {
   int16_t rawY = (int16_t)((buffer[3] << 8) | buffer[2]);
   int16_t rawZ = (int16_t)((buffer[5] << 8) | buffer[4]);
 
-  return { rawX * SENSITIVITY, rawY * SENSITIVITY, rawZ * SENSITIVITY };
+  AccelData data;
+  data.x = rawX * SENSITIVITY;
+  data.y = rawY * SENSITIVITY;
+  data.z = rawZ * SENSITIVITY;
+  return data;
 }
 
+// ---------- Calibration ----------
+// Place sensor FLAT and STILL, then power on.
+// This saves the reference readings so flat = 0°.
+
+void calibrateSensor() {
+  Serial.println("\n================================");
+  Serial.println("  CALIBRATION MODE");
+  Serial.println("  Keep sensor FLAT and STILL!");
+  Serial.println("  Starting in 3 seconds...");
+  Serial.println("================================");
+  delay(3000);
+
+  // Throw away first 20 readings (let sensor settle)
+  for (int i = 0; i < 20; i++) {
+    readAccel();
+    delay(10);
+  }
+
+  // Take 300 readings and average
+  float sumX = 0, sumY = 0, sumZ = 0;
+  int samples = 300;
+
+  for (int i = 0; i < samples; i++) {
+    AccelData accel = readAccel();
+    sumX += accel.x;
+    sumY += accel.y;
+    sumZ += accel.z;
+    delay(5);
+  }
+
+  // Save reference = average of what "flat" looks like
+  refX = sumX / samples;
+  refY = sumY / samples;
+  refZ = sumZ / samples;
+
+  Serial.println("\n--- Calibration Result ---");
+  Serial.printf("  Reference X: %.4f g\n", refX);
+  Serial.printf("  Reference Y: %.4f g\n", refY);
+  Serial.printf("  Reference Z: %.4f g\n", refZ);
+  Serial.printf("  Flat tilt should be: 0.00°\n");
+  Serial.println("  ✅ Calibration DONE!\n");
+  Serial.println("  Tilt the sensor now...");
+  Serial.println("============================\n");
+}
+
+// ---------- Tilt calculation ----------
+
 float calculateTiltAngle(float ax, float ay, float az) {
-  return atan2(az, sqrt(ax * ax + ay * ay)) * 180.0 / PI;
+  // Diff from flat reference
+  float dx = ax - refX;
+  float dy = ay - refY;
+  float dz = az - refZ;
+
+  // Flat when dx≈0, dy≈0
+  // Tilt angle = how far from flat (in degrees)
+  float tiltRad = atan2(sqrt(dx * dx + dy * dy), abs(dz) + 0.001);
+  float tiltDeg = tiltRad * 180.0 / PI;
+
+  // Determine sign based on which axis is tilted
+  // Positive = tilting one way, Negative = tilting other way
+  if (abs(dx) > abs(dy)) {
+    // Tilting along X axis
+    if (dx > 0) tiltDeg = -tiltDeg;  // Left tilt = negative
+  } else {
+    // Tilting along Y axis
+    if (dy > 0) tiltDeg = -tiltDeg;  // Forward tilt = negative
+  }
+
+  return tiltDeg;
 }
 
 // ---------- Moving average ----------
 
-#define FILTER_SIZE 10
+#define FILTER_SIZE 15
 float filterBuffer[FILTER_SIZE];
 uint8_t filterIndex = 0;
 
@@ -172,7 +249,6 @@ void sendDataToServer(float tilt, const char* status) {
   http.begin(SERVER_URL);
   http.addHeader("Content-Type", "application/json");
 
-  // Build JSON payload
   String payload = "{";
   payload += "\"device_id\":\"" + String(DEVICE_ID) + "\",";
   payload += "\"tilt\":" + String(tilt, 2) + ",";
@@ -183,7 +259,7 @@ void sendDataToServer(float tilt, const char* status) {
   int httpCode = http.POST(payload);
 
   if (httpCode > 0) {
-    Serial.printf("POST %s -> %d\n", SERVER_URL, httpCode);
+    Serial.printf("POST -> %d\n", httpCode);
   } else {
     Serial.printf("POST failed: %s\n", http.errorToString(httpCode).c_str());
   }
@@ -191,12 +267,14 @@ void sendDataToServer(float tilt, const char* status) {
   http.end();
 }
 
-// ---------- Determine status ----------
+// ---------- Determine status (with dead zone) ----------
 
 const char* getTiltStatus(float tilt) {
-  if (tilt > TILT_YELLOW) return "warning";   // Yellow
-  if (tilt < TILT_RED) return "danger";       // Red
-  return "safe";                               // Green
+  // Dead zone: ignore tiny movements
+  if (tilt > -DEAD_ZONE && tilt < DEAD_ZONE) return "safe";
+  if (tilt > TILT_YELLOW) return "warning";
+  if (tilt < TILT_RED) return "danger";
+  return "safe";
 }
 
 // ---------- Main ----------
@@ -227,6 +305,9 @@ void setup() {
 
   for (uint8_t i = 0; i < FILTER_SIZE; i++) filterBuffer[i] = 0.0;
 
+  // CALIBRATE: place sensor flat before this!
+  calibrateSensor();
+
   connectWiFi();
   Serial.println("\nListening for tilt...\n");
 }
@@ -241,7 +322,8 @@ void loop() {
   static unsigned long lastPrint = 0;
   if (millis() - lastPrint >= 500) {
     lastPrint = millis();
-    Serial.printf("Tilt: %.2f° [%s]\n", filteredTilt, status);
+    Serial.printf("Tilt: %.2f° [%s] (raw: X=%.3f Y=%.3f Z=%.3f)\n",
+                  filteredTilt, status, accel.x, accel.y, accel.z);
   }
 
   // LED alert
