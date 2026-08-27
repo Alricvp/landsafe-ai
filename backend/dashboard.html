@@ -479,12 +479,20 @@
         warningBanner.className = 'warning-banner red';
         warningBanner.textContent = '⚠️ DANGER — GROUND SHIFT DETECTED';
         if (audioCtx && soundEnabled) startSiren();
+        // Vibrate phone: pattern [vibrate, pause, vibrate, pause...]
+        if (navigator.vibrate) {
+          navigator.vibrate([300, 100, 300, 100, 300, 100, 500]);
+        }
       } else if (status === 'warning') {
         alertOverlay.classList.add('active-yellow');
         warningBanner.className = 'warning-banner yellow';
         warningBanner.textContent = '⚠ WARNING — TILT ANOMALY DETECTED';
+        if (navigator.vibrate) {
+          navigator.vibrate([200, 200, 200]);
+        }
       } else {
         stopSiren();
+        if (navigator.vibrate) navigator.vibrate(0);  // Stop vibration
       }
 
       addLogEntry(tilt, status, timestamp);
