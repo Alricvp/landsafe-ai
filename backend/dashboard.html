@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Landsafe AI - Tilt Monitor</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
@@ -25,69 +27,51 @@
       overflow: hidden;
     }
     .bg-orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.3;
+      position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.3;
       animation: orbFloat 20s ease-in-out infinite;
     }
-    .bg-orb:nth-child(1) { width: 500px; height: 500px; background: #003366; top: -10%; left: -10%; animation-delay: 0s; }
+    .bg-orb:nth-child(1) { width: 500px; height: 500px; background: #003366; top: -10%; left: -10%; }
     .bg-orb:nth-child(2) { width: 400px; height: 400px; background: #001a33; bottom: -10%; right: -10%; animation-delay: -7s; }
     .bg-orb:nth-child(3) { width: 300px; height: 300px; background: #002244; top: 40%; left: 50%; animation-delay: -14s; }
-
     @keyframes orbFloat {
       0%, 100% { transform: translate(0, 0) scale(1); }
       33% { transform: translate(40px, -30px) scale(1.1); }
       66% { transform: translate(-20px, 20px) scale(0.9); }
     }
 
-    /* ---- Glass Effect ---- */
+    /* ---- Glass ---- */
     .glass {
       background: rgba(255, 255, 255, 0.04);
       backdrop-filter: blur(24px) saturate(1.4);
       -webkit-backdrop-filter: blur(24px) saturate(1.4);
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 24px;
-      position: relative;
-      overflow: hidden;
+      position: relative; overflow: hidden;
     }
     .glass::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
       background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-    }
-    .glass::after {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 50%, rgba(255,255,255,0.02) 100%);
-      pointer-events: none;
-      border-radius: 24px;
     }
 
     /* ---- Header ---- */
     .header {
       position: sticky; top: 0; z-index: 50;
-      padding: 16px 28px;
+      padding: 14px 24px;
       display: flex; align-items: center; justify-content: space-between;
       background: rgba(6, 6, 18, 0.7);
-      backdrop-filter: blur(30px) saturate(1.5);
-      -webkit-backdrop-filter: blur(30px) saturate(1.5);
+      backdrop-filter: blur(30px);
       border-bottom: 1px solid rgba(255,255,255,0.06);
     }
     .header h1 {
-      font-size: 1.4rem; font-weight: 800;
+      font-size: 1.3rem; font-weight: 800;
       background: linear-gradient(135deg, #00d4ff, #00ff88);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      letter-spacing: -0.5px;
     }
-    .header-right { display: flex; align-items: center; gap: 16px; }
+    .header-right { display: flex; align-items: center; gap: 14px; }
     .conn-dot { width: 8px; height: 8px; border-radius: 50%; background: #ff3333; transition: 0.3s; }
     .conn-dot.on { background: #00ff88; box-shadow: 0 0 10px #00ff88; }
-    .conn-label { font-size: 0.75rem; color: #666; }
-    .badge { font-size: 0.65rem; padding: 5px 14px; border-radius: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
+    .conn-label { font-size: 0.72rem; color: #555; }
+    .badge { font-size: 0.6rem; padding: 4px 12px; border-radius: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
     .badge-safe { background: rgba(0,255,136,0.08); color: #00ff88; border: 1px solid rgba(0,255,136,0.2); }
     .badge-warning { background: rgba(255,170,0,0.1); color: #ffaa00; border: 1px solid rgba(255,170,0,0.3); animation: pulseY 1.2s infinite; }
     .badge-danger { background: rgba(255,51,51,0.12); color: #ff3333; border: 1px solid rgba(255,51,51,0.3); animation: pulseR 0.6s infinite; }
@@ -97,17 +81,21 @@
     /* ---- Layout ---- */
     .main {
       position: relative; z-index: 1;
-      display: grid; grid-template-columns: 1fr 340px; gap: 24px;
-      padding: 28px; max-width: 1240px; margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      grid-template-rows: auto auto;
+      gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto;
     }
-    @media (max-width: 860px) { .main { grid-template-columns: 1fr; padding: 16px; gap: 16px; } }
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; padding: 12px; gap: 12px; }
+    }
 
     /* ---- Gauge Card ---- */
-    .gauge-card { padding: 40px 36px; text-align: center; }
-    .gauge-wrap { position: relative; width: 300px; height: 170px; margin: 0 auto 20px; }
+    .gauge-card { padding: 32px 28px; text-align: center; }
+    .gauge-wrap { position: relative; width: 280px; height: 160px; margin: 0 auto 16px; }
     .gauge-arc {
-      width: 300px; height: 150px;
-      border-radius: 150px 150px 0 0;
+      width: 280px; height: 140px;
+      border-radius: 140px 140px 0 0;
       background: rgba(0,0,0,0.4);
       border: 4px solid rgba(255,255,255,0.06);
       border-bottom: none;
@@ -117,90 +105,105 @@
     .gz-green { background: conic-gradient(from 0.75turn, transparent 0%, rgba(0,255,136,0.12) 30%, transparent 50%); }
     .gz-yellow { background: conic-gradient(from 0.65turn, transparent 0%, rgba(255,170,0,0.08) 15%, transparent 30%); }
     .gz-red { background: conic-gradient(from 0.5turn, transparent 0%, rgba(255,51,51,0.12) 25%, transparent 50%); }
-
     .needle {
       position: absolute; bottom: 0; left: 50%;
-      width: 3px; height: 130px;
+      width: 3px; height: 120px;
       background: linear-gradient(to top, rgba(255,255,255,0.7), #00d4ff);
-      transform-origin: bottom center;
-      transform: translateX(-50%) rotate(0deg);
+      transform-origin: bottom center; transform: translateX(-50%) rotate(0deg);
       transition: transform 0.5s cubic-bezier(0.25,0.8,0.25,1);
-      border-radius: 2px;
-      box-shadow: 0 0 16px rgba(0,212,255,0.5);
+      border-radius: 2px; box-shadow: 0 0 16px rgba(0,212,255,0.5);
     }
     .needle-dot {
       position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
-      width: 20px; height: 20px;
-      background: radial-gradient(circle, #00d4ff, #006688);
-      border-radius: 50%; z-index: 2;
-      box-shadow: 0 0 18px rgba(0,212,255,0.4);
+      width: 20px; height: 20px; background: radial-gradient(circle, #00d4ff, #006688);
+      border-radius: 50%; z-index: 2; box-shadow: 0 0 18px rgba(0,212,255,0.4);
     }
-
-    .gauge-labels { display: flex; justify-content: space-between; margin-top: 12px; font-size: 0.65rem; color: #444; text-transform: uppercase; letter-spacing: 1px; }
-
-    .tilt-num {
-      font-size: 4.5rem; font-weight: 900; margin: 20px 0 4px;
-      font-variant-numeric: tabular-nums; transition: 0.3s;
-      letter-spacing: -2px;
-    }
+    .gauge-labels { display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.6rem; color: #444; text-transform: uppercase; letter-spacing: 1px; }
+    .tilt-num { font-size: 4rem; font-weight: 900; margin: 16px 0 2px; font-variant-numeric: tabular-nums; transition: 0.3s; letter-spacing: -2px; }
     .tilt-num.safe { color: #00ff88; text-shadow: 0 0 30px rgba(0,255,136,0.2); }
     .tilt-num.warning { color: #ffaa00; text-shadow: 0 0 30px rgba(255,170,0,0.3); }
     .tilt-num.danger { color: #ff3333; text-shadow: 0 0 40px rgba(255,51,51,0.5); animation: numPulse 0.6s infinite; }
     @keyframes numPulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    .tilt-unit { font-size: 0.8rem; color: #444; margin-bottom: 4px; }
+    .tilt-dev { font-size: 0.75rem; color: #555; }
 
-    .tilt-unit { font-size: 0.85rem; color: #444; margin-bottom: 6px; }
-    .tilt-dev { font-size: 0.8rem; color: #555; }
-
-    .bar-row { display: flex; gap: 3px; margin-top: 18px; padding: 0 16px; }
+    .bar-row { display: flex; gap: 3px; margin-top: 14px; padding: 0 14px; }
     .bar-seg { flex: 1; height: 5px; border-radius: 3px; background: #111; }
     .bar-seg.g { background: linear-gradient(90deg, #0a3320, #00ff88, #0a3320); }
     .bar-seg.y { background: linear-gradient(90deg, #33290a, #ffaa00, #33290a); }
     .bar-seg.r { background: linear-gradient(90deg, #330a0a, #ff3333, #330a0a); }
 
     /* ---- Sidebar ---- */
-    .sidebar { display: flex; flex-direction: column; gap: 16px; }
-
-    .s-card { padding: 22px; }
-    .s-card h3 { font-size: 0.7rem; color: #444; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 14px; font-weight: 600; }
-
-    .info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .sidebar { display: flex; flex-direction: column; gap: 14px; }
+    .s-card { padding: 18px; }
+    .s-card h3 { font-size: 0.65rem; color: #444; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; font-weight: 600; }
+    .info-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
     .info-row:last-child { border-bottom: none; }
-    .info-l { color: #555; font-size: 0.78rem; }
-    .info-v { color: #ccc; font-weight: 600; font-size: 0.82rem; }
+    .info-l { color: #555; font-size: 0.75rem; }
+    .info-v { color: #ccc; font-weight: 600; font-size: 0.78rem; }
 
-    /* ---- Toggle Buttons ---- */
+    /* ---- Moisture Bar ---- */
+    .moisture-bar-bg {
+      width: 100%; height: 12px; background: rgba(0,0,0,0.4);
+      border-radius: 6px; overflow: hidden; margin: 8px 0;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .moisture-bar-fill {
+      height: 100%; border-radius: 6px;
+      transition: width 0.5s ease, background 0.5s ease;
+      background: linear-gradient(90deg, #00d4ff, #0088cc);
+    }
+    .moisture-bar-fill.warn { background: linear-gradient(90deg, #ffaa00, #ff8800); }
+    .moisture-bar-fill.danger { background: linear-gradient(90deg, #ff3333, #cc0000); }
+
+    /* ---- Risk Meter ---- */
+    .risk-meter {
+      width: 100%; height: 10px; background: rgba(0,0,0,0.4);
+      border-radius: 5px; overflow: hidden; margin: 8px 0;
+    }
+    .risk-fill {
+      height: 100%; border-radius: 5px;
+      transition: width 0.8s ease, background 0.8s ease;
+    }
+    .risk-fill.low { background: linear-gradient(90deg, #00aa55, #00ff88); }
+    .risk-fill.moderate { background: linear-gradient(90deg, #ffaa00, #ff8800); }
+    .risk-fill.high { background: linear-gradient(90deg, #ff6633, #ff3333); }
+    .risk-fill.critical { background: linear-gradient(90deg, #ff0033, #cc0000); animation: riskPulse 0.5s infinite; }
+    @keyframes riskPulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+    .risk-text { font-size: 0.75rem; font-weight: 700; margin-top: 6px; }
+    .prediction-text { font-size: 0.7rem; color: #888; margin-top: 6px; line-height: 1.4; }
+
+    /* ---- Map ---- */
+    .map-card { grid-column: 1 / -1; }
+    .map-card h3 { font-size: 0.65rem; color: #444; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; font-weight: 600; padding: 18px 18px 0; }
+    #map { height: 320px; border-radius: 0 0 24px 24px; z-index: 1; }
+    .leaflet-container { background: #0a0a1a !important; }
+
+    /* ---- Toggles ---- */
     .toggle-btn {
-      width: 100%;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.08);
-      color: #ccc;
-      padding: 14px 18px;
-      border-radius: 14px;
-      cursor: pointer;
-      font-size: 0.82rem;
-      display: flex; align-items: center; justify-content: space-between;
-      transition: all 0.25s;
-      margin-bottom: 10px;
-      font-family: inherit;
+      width: 100%; background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08); color: #ccc;
+      padding: 12px 16px; border-radius: 12px; cursor: pointer;
+      font-size: 0.78rem; display: flex; align-items: center;
+      justify-content: space-between; transition: all 0.25s;
+      margin-bottom: 8px; font-family: inherit;
     }
     .toggle-btn:last-of-type { margin-bottom: 0; }
     .toggle-btn:hover { background: rgba(255,255,255,0.06); border-color: rgba(0,212,255,0.2); }
     .toggle-btn.on { background: rgba(0,255,136,0.06); border-color: rgba(0,255,136,0.25); }
-    .toggle-btn .t-left { display: flex; align-items: center; gap: 10px; }
+    .t-left { display: flex; align-items: center; gap: 8px; }
     .toggle-dot { width: 8px; height: 8px; border-radius: 50%; transition: 0.3s; }
     .toggle-dot.off { background: #ff3333; box-shadow: 0 0 6px rgba(255,51,51,0.4); }
     .toggle-dot.on { background: #00ff88; box-shadow: 0 0 8px rgba(0,255,136,0.5); }
-
-    .toggle-hint { font-size: 0.68rem; color: #333; margin-top: 10px; line-height: 1.4; }
+    .toggle-hint { font-size: 0.65rem; color: #333; margin-top: 8px; }
 
     /* ---- Log ---- */
-    .log-wrap { max-height: 240px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #1a1a2e transparent; }
-    .log-entry { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.75rem; display: flex; justify-content: space-between; }
+    .log-wrap { max-height: 200px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #1a1a2e transparent; }
+    .log-entry { padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.7rem; display: flex; justify-content: space-between; }
     .log-t { color: #333; white-space: nowrap; }
     .log-v { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
-    .log-v.safe { color: #00ff88; }
-    .log-v.warning { color: #ffaa00; }
-    .log-v.danger { color: #ff3333; }
+    .log-v.safe { color: #00ff88; } .log-v.warning { color: #ffaa00; } .log-v.danger { color: #ff3333; }
 
     /* ---- Overlays ---- */
     .overlay { display: none; position: fixed; inset: 0; z-index: 100; pointer-events: none; }
@@ -208,20 +211,28 @@
     .overlay.yellow { display: block; background: radial-gradient(ellipse at center, rgba(255,170,0,0.1) 0%, transparent 70%); animation: flash 1.5s infinite; }
     @keyframes flash { 0%,100%{opacity:0.2} 50%{opacity:1} }
 
-    .alert-bar { display: none; padding: 14px 20px; text-align: center; font-weight: 700; font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase; }
+    .alert-bar { display: none; padding: 12px 20px; text-align: center; font-weight: 700; font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; }
     .alert-bar.yellow { display: block; background: linear-gradient(90deg, rgba(50,40,10,0.95), rgba(70,55,10,0.95), rgba(50,40,10,0.95)); color: #ffaa00; border-bottom: 2px solid rgba(255,170,0,0.5); }
     .alert-bar.red { display: block; background: linear-gradient(90deg, rgba(60,10,10,0.95), rgba(80,12,12,0.95), rgba(60,10,10,0.95)); color: #ff3333; border-bottom: 2px solid rgba(255,51,51,0.5); animation: bannerFlash 0.5s infinite; }
     @keyframes bannerFlash { 0%,100%{opacity:1} 50%{opacity:0.6} }
 
-    /* ---- Footer ---- */
-    .footer { text-align: center; padding: 24px; font-size: 0.65rem; color: #222; position: relative; z-index: 1; }
+    /* ---- Water Drop Animation ---- */
+    .water-drop {
+      display: inline-block; width: 14px; height: 14px;
+      background: radial-gradient(circle at 40% 30%, #44aaff, #0066cc);
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      animation: drip 2s ease-in-out infinite;
+      margin-right: 6px;
+    }
+    @keyframes drip { 0%,100%{transform:rotate(-45deg) translateY(0)} 50%{transform:rotate(-45deg) translateY(3px)} }
+
+    .footer { text-align: center; padding: 20px; font-size: 0.6rem; color: #1a1a1a; position: relative; z-index: 1; }
   </style>
 </head>
 <body>
   <div class="bg-layer">
-    <div class="bg-orb"></div>
-    <div class="bg-orb"></div>
-    <div class="bg-orb"></div>
+    <div class="bg-orb"></div><div class="bg-orb"></div><div class="bg-orb"></div>
   </div>
 
   <div id="overlay" class="overlay"></div>
@@ -251,9 +262,7 @@
         </div>
       </div>
       <div class="gauge-labels">
-        <span>10°+ WARN</span>
-        <span>0° LEVEL</span>
-        <span>40°+ DANGER</span>
+        <span>10°+ WARN</span><span>0° LEVEL</span><span>40°+ DANGER</span>
       </div>
       <div class="tilt-num safe" id="tilt-val">0.00°</div>
       <div class="tilt-unit">Tilt Angle</div>
@@ -267,6 +276,7 @@
 
     <!-- Sidebar -->
     <div class="sidebar">
+      <!-- Sensor Info -->
       <div class="s-card glass">
         <h3>📡 Sensor Info</h3>
         <div class="info-row"><span class="info-l">Device</span><span class="info-v" id="dev-id">—</span></div>
@@ -274,6 +284,34 @@
         <div class="info-row"><span class="info-l">Last Update</span><span class="info-v" id="dev-time">—</span></div>
       </div>
 
+      <!-- Moisture -->
+      <div class="s-card glass">
+        <h3><span class="water-drop"></span>Soil Moisture</h3>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;">
+          <span class="tilt-num" id="moisture-val" style="font-size:2.2rem;margin:4px 0;color:#00d4ff;">0%</span>
+          <span id="water-density" style="font-size:0.7rem;color:#444;">Density: — kg/m³</span>
+        </div>
+        <div class="moisture-bar-bg"><div class="moisture-bar-fill" id="moisture-bar" style="width:0%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.6rem;color:#333;">
+          <span>Dry</span><span>Moist</span><span>Saturated</span>
+        </div>
+      </div>
+
+      <!-- Risk -->
+      <div class="s-card glass">
+        <h3>🏔️ Landslide Risk</h3>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;">
+          <span class="risk-text" id="risk-level" style="font-size:1rem;">LOW</span>
+          <span id="risk-score" style="font-size:0.7rem;color:#555;">0%</span>
+        </div>
+        <div class="risk-meter"><div class="risk-fill low" id="risk-bar" style="width:0%"></div></div>
+        <div id="prediction-text" class="prediction-text">Awaiting data...</div>
+        <div style="margin-top:8px;font-size:0.65rem;color:#333;">
+          <span>Trend: </span><span id="risk-trend" style="font-weight:600;">stable</span>
+        </div>
+      </div>
+
+      <!-- Alerts -->
       <div class="s-card glass">
         <h3>🔔 Alert Controls</h3>
         <button id="siren-btn" class="toggle-btn" onclick="toggleSiren()">
@@ -284,9 +322,9 @@
           <span class="t-left"><span id="vib-ico">📴</span><span id="vib-txt">Vibrate OFF</span></span>
           <span class="toggle-dot off" id="vib-dot"></span>
         </button>
-        <p class="toggle-hint">Toggle siren & vibration for real-time alerts.</p>
       </div>
 
+      <!-- Log -->
       <div class="s-card glass">
         <h3>📊 Live Log</h3>
         <div class="log-wrap" id="log-wrap">
@@ -294,22 +332,29 @@
         </div>
       </div>
     </div>
+
+    <!-- Map -->
+    <div class="map-card glass">
+      <h3>🗺️ Regional Monitoring Map</h3>
+      <div id="map"></div>
+    </div>
   </div>
 
-  <div class="footer">Landsafe AI — Real-time Landslide Monitoring</div>
+  <div class="footer">Landsafe AI v2.0 — Real-time Landslide Monitoring with Prediction</div>
 
   <script>
     const API = `${location.origin}/api/latest`;
     const HIST = `${location.origin}/api/history`;
+    const RISK = `${location.origin}/api/risk`;
 
     let sirenOn = false, vibOn = false;
-    let audioCtx = null, sirenOsc = null, sirenGain = null;
+    let audioCtx = null, sirenOsc = null;
     let lastStatus = 'safe', lastTS = '';
-    let vibInterval = null; // For continuous vibration
+    let vibInterval = null;
 
     const $ = id => document.getElementById(id);
 
-    // ---- Audio init on user gesture ----
+    // ---- Audio ----
     function initAudio() {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -317,57 +362,33 @@
     document.addEventListener('click', initAudio, { once: false });
     document.addEventListener('touchstart', initAudio, { once: false });
 
-    // ---- Siren ----
     function startSiren() {
-      initAudio();
-      if (sirenOsc) return;
+      initAudio(); if (sirenOsc) return;
       sirenOsc = audioCtx.createOscillator();
-      sirenGain = audioCtx.createGain();
+      const g = audioCtx.createGain();
       sirenOsc.type = 'sawtooth';
       sirenOsc.frequency.setValueAtTime(800, audioCtx.currentTime);
       sirenOsc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.3);
       sirenOsc.frequency.linearRampToValueAtTime(600, audioCtx.currentTime + 0.6);
-      sirenGain.gain.setValueAtTime(1.0, audioCtx.currentTime);
-      sirenOsc.connect(sirenGain);
-      sirenGain.connect(audioCtx.destination);
+      g.gain.setValueAtTime(1.0, audioCtx.currentTime);
+      sirenOsc.connect(g); g.connect(audioCtx.destination);
       sirenOsc.start();
-      sirenOsc.onended = () => {
-        sirenOsc = null;
-        if (lastStatus !== 'safe' && sirenOn) startSiren();
-      };
+      sirenOsc.onended = () => { sirenOsc = null; if (lastStatus !== 'safe' && sirenOn) startSiren(); };
     }
+    function stopSiren() { if (sirenOsc) { try { sirenOsc.stop(); } catch(e) {} sirenOsc = null; } }
 
-    function stopSiren() {
-      if (sirenOsc) { try { sirenOsc.stop(); } catch(e) {} sirenOsc = null; }
-    }
-
-    // ---- Continuous Vibration ----
     function startContinuousVibrate() {
-      if (vibInterval) return; // Already running
-      // Strong vibration pattern that repeats
+      if (vibInterval) return;
       vibInterval = setInterval(() => {
-        if (navigator.vibrate) {
-          navigator.vibrate([400, 100, 400, 100, 400]); // buzz-pause-buzz-pause-buzz
-        }
-      }, 1500); // Repeat every 1.5 seconds
-      // Also do one immediate vibration
+        if (navigator.vibrate) navigator.vibrate([400, 100, 400, 100, 400]);
+      }, 1500);
       if (navigator.vibrate) navigator.vibrate([400, 100, 400, 100, 400]);
     }
-
     function stopContinuousVibrate() {
-      if (vibInterval) {
-        clearInterval(vibInterval);
-        vibInterval = null;
-      }
-      if (navigator.vibrate) navigator.vibrate(0); // Stop immediately
+      if (vibInterval) { clearInterval(vibInterval); vibInterval = null; }
+      if (navigator.vibrate) navigator.vibrate(0);
     }
 
-    function lightVibrate() {
-      if (!vibOn || !navigator.vibrate) return;
-      navigator.vibrate([150, 200, 150]);
-    }
-
-    // ---- Toggle buttons ----
     function toggleSiren() {
       sirenOn = !sirenOn;
       $('siren-btn').classList.toggle('on', sirenOn);
@@ -377,45 +398,117 @@
       if (sirenOn) { initAudio(); if (lastStatus !== 'safe') startSiren(); }
       else stopSiren();
     }
-
     function toggleVibrate() {
       vibOn = !vibOn;
       $('vib-btn').classList.toggle('on', vibOn);
       $('vib-ico').textContent = vibOn ? '📳' : '📴';
       $('vib-txt').textContent = vibOn ? 'Vibrate ON' : 'Vibrate OFF';
       $('vib-dot').className = 'toggle-dot ' + (vibOn ? 'on' : 'off');
-      if (vibOn) {
-        navigator.vibrate && navigator.vibrate(200); // Test buzz
-        // If already in danger/warning, start continuous now
-        if (lastStatus === 'danger') startContinuousVibrate();
-        else if (lastStatus === 'warning') lightVibrate();
+      if (vibOn) { navigator.vibrate && navigator.vibrate(200); if (lastStatus === 'danger') startContinuousVibrate(); }
+      else stopContinuousVibrate();
+    }
+
+    // ---- Map ----
+    // Default: Pune, India (adjust to your region)
+    const map = L.map('map', { zoomControl: true, attributionControl: false }).setView([18.5204, 73.8567], 12);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+    }).addTo(map);
+
+    let sensorMarker = null;
+    let riskCircle = null;
+
+    function updateMap(lat, lng, riskScore, status) {
+      const color = status === 'danger' ? '#ff3333' : status === 'warning' ? '#ffaa00' : '#00ff88';
+
+      if (!sensorMarker) {
+        sensorMarker = L.circleMarker([lat, lng], {
+          radius: 8, fillColor: color, color: '#fff', weight: 2, fillOpacity: 0.8
+        }).addTo(map).bindPopup('<b>Landsafe Sensor</b><br>sensor-001');
       } else {
-        stopContinuousVibrate();
+        sensorMarker.setStyle({ fillColor: color });
       }
+
+      if (!riskCircle) {
+        riskCircle = L.circle([lat, lng], {
+          radius: 1000 + riskScore * 50, fillColor: color, color: color,
+          weight: 1, fillOpacity: 0.1 + riskScore * 0.003
+        }).addTo(map);
+      } else {
+        riskCircle.setStyle({ fillColor: color, color: color, fillOpacity: 0.1 + riskScore * 0.003 });
+        riskCircle.setRadius(1000 + riskScore * 50);
+      }
+
+      // Surrounding risk markers
+      addNeighborMarkers(lat, lng, riskScore);
+    }
+
+    function addNeighborMarkers(lat, lng, baseRisk) {
+      // Simulated nearby monitoring points
+      const offsets = [
+        [0.02, 0.03], [-0.01, 0.04], [0.03, -0.02],
+        [-0.03, -0.01], [0.01, -0.04], [-0.02, 0.02]
+      ];
+      offsets.forEach(([dlat, dlng], i) => {
+        const r = Math.max(0, baseRisk + (Math.random() - 0.5) * 30);
+        const c = r >= 70 ? '#ff3333' : r >= 40 ? '#ffaa00' : '#00ff88';
+        L.circleMarker([lat + dlat, lng + dlng], {
+          radius: 5, fillColor: c, color: c, weight: 1, fillOpacity: 0.5
+        }).addTo(map);
+      });
     }
 
     // ---- Update dashboard ----
-    function update(data) {
-      const { tilt, status, device_id, timestamp } = data;
+    function update(data, risk) {
+      const { tilt, moisture, status, device_id, timestamp } = data;
+      const m = moisture || 0;
 
+      // Tilt gauge
       const clamped = Math.max(-90, Math.min(90, tilt));
       $('needle').style.transform = `translateX(-50%) rotate(${-(clamped / 90) * 90}deg)`;
-
       $('tilt-val').textContent = `${tilt.toFixed(2)}°`;
       $('tilt-val').className = `tilt-num ${status}`;
       $('tilt-dev').textContent = `Device: ${device_id}`;
       $('badge').textContent = status.toUpperCase();
       $('badge').className = `badge badge-${status}`;
 
+      // Info
       $('dev-id').textContent = device_id;
       $('dev-status').textContent = status.toUpperCase();
       $('dev-status').style.color = status === 'danger' ? '#ff3333' : status === 'warning' ? '#ffaa00' : '#00ff88';
       $('dev-time').textContent = new Date(timestamp).toLocaleTimeString();
 
+      // Moisture
+      $('moisture-val').textContent = `${m.toFixed(1)}%`;
+      const mBar = $('moisture-bar');
+      mBar.style.width = `${m}%`;
+      mBar.className = 'moisture-bar-fill' + (m >= 80 ? ' danger' : m >= 60 ? ' warn' : '');
+      $('moisture-val').style.color = m >= 80 ? '#ff3333' : m >= 60 ? '#ffaa00' : '#00d4ff';
+
+      // Risk
+      if (risk) {
+        const rScore = risk.risk_score || 0;
+        const rLevel = risk.risk_level || 'LOW';
+        $('risk-level').textContent = rLevel;
+        $('risk-level').style.color = rScore >= 70 ? '#ff3333' : rScore >= 40 ? '#ffaa00' : rScore >= 15 ? '#ffcc00' : '#00ff88';
+        $('risk-score').textContent = `${rScore.toFixed(0)}%`;
+        const rBar = $('risk-bar');
+        rBar.style.width = `${rScore}%`;
+        rBar.className = 'risk-fill ' + (rScore >= 70 ? 'critical' : rScore >= 40 ? 'high' : rScore >= 15 ? 'moderate' : 'low');
+        $('prediction-text').textContent = risk.prediction || '';
+        $('risk-trend').textContent = risk.trend || 'stable';
+        $('risk-trend').style.color = risk.trend === 'increasing' ? '#ff3333' : risk.trend === 'decreasing' ? '#00ff88' : '#888';
+
+        // Water density
+        $('water-density').textContent = `Density: ${(risk.water_density || 1000).toFixed(0)} kg/m³`;
+      }
+
+      // Map
+      updateMap(18.5204, 73.8567, risk ? risk.risk_score : 0, status);
+
       // Overlays
       $('overlay').className = 'overlay';
       $('alert-bar').className = 'alert-bar';
-
       if (status === 'danger') {
         $('overlay').classList.add('red');
         $('alert-bar').className = 'alert-bar red';
@@ -426,19 +519,16 @@
         $('overlay').classList.add('yellow');
         $('alert-bar').className = 'alert-bar yellow';
         $('alert-bar').textContent = '⚠ WARNING — TILT ANOMALY DETECTED';
-        if (vibOn) lightVibrate();
-        // If was in danger before, stop continuous vibrate
         if (lastStatus === 'danger') stopContinuousVibrate();
       } else {
-        stopSiren();
-        stopContinuousVibrate();
+        stopSiren(); stopContinuousVibrate();
       }
 
       // Log
       const t = new Date(timestamp).toLocaleTimeString();
       const entry = document.createElement('div');
       entry.className = 'log-entry';
-      entry.innerHTML = `<span class="log-t">${t}</span><span class="log-v ${status}">${tilt.toFixed(2)}° ${status === 'danger' ? '🔴' : status === 'warning' ? '🟡' : '🟢'}</span>`;
+      entry.innerHTML = `<span class="log-t">${t}</span><span class="log-v ${status}">${tilt.toFixed(2)}° M:${m.toFixed(0)}% ${status === 'danger' ? '🔴' : status === 'warning' ? '🟡' : '🟢'}</span>`;
       $('log-wrap').insertBefore(entry, $('log-wrap').firstChild);
       while ($('log-wrap').children.length > 50) $('log-wrap').removeChild($('log-wrap').lastChild);
 
@@ -452,7 +542,7 @@
         const j = await r.json();
         if (j.data && j.data.timestamp !== lastTS) {
           lastTS = j.data.timestamp;
-          update(j.data);
+          update(j.data, j.risk);
           $('conn-dot').classList.add('on');
           $('conn-label').textContent = 'Live';
         }
@@ -467,12 +557,15 @@
         const r = await fetch(HIST);
         const j = await r.json();
         if (j.data && j.data.length > 0) {
-          update(j.data[j.data.length - 1]);
+          const riskR = await fetch(RISK);
+          const riskJ = await riskR.json();
+          update(j.data[j.data.length - 1], riskJ.data);
           j.data.slice(-20).forEach(d => {
             const t = new Date(d.timestamp).toLocaleTimeString();
             const e = document.createElement('div');
             e.className = 'log-entry';
-            e.innerHTML = `<span class="log-t">${t}</span><span class="log-v ${d.status}">${d.tilt.toFixed(2)}° ${d.status === 'danger' ? '🔴' : d.status === 'warning' ? '🟡' : '🟢'}</span>`;
+            const m = d.moisture || 0;
+            e.innerHTML = `<span class="log-t">${t}</span><span class="log-v ${d.status}">${d.tilt.toFixed(2)}° M:${m.toFixed(0)}% ${d.status === 'danger' ? '🔴' : d.status === 'warning' ? '🟡' : '🟢'}</span>`;
             $('log-wrap').appendChild(e);
           });
         }
