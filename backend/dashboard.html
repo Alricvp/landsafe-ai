@@ -4,338 +4,250 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Landsafe AI - Tilt Monitor</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: linear-gradient(135deg, #0a0a1a 0%, #0d1b2a 50%, #1b2838 100%);
-      color: #e0e0e0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
       min-height: 100vh;
       overflow-x: hidden;
+      color: #fff;
+      background: #0a0a1a;
+    }
+
+    /* ---- Animated BG ---- */
+    .bg-layer {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 0;
+      background: linear-gradient(135deg, #060612 0%, #0d1b2a 40%, #0a1628 100%);
+      overflow: hidden;
+    }
+    .bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.3;
+      animation: orbFloat 20s ease-in-out infinite;
+    }
+    .bg-orb:nth-child(1) { width: 500px; height: 500px; background: #003366; top: -10%; left: -10%; animation-delay: 0s; }
+    .bg-orb:nth-child(2) { width: 400px; height: 400px; background: #001a33; bottom: -10%; right: -10%; animation-delay: -7s; }
+    .bg-orb:nth-child(3) { width: 300px; height: 300px; background: #002244; top: 40%; left: 50%; animation-delay: -14s; }
+
+    @keyframes orbFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(40px, -30px) scale(1.1); }
+      66% { transform: translate(-20px, 20px) scale(0.9); }
+    }
+
+    /* ---- Glass Effect ---- */
+    .glass {
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(24px) saturate(1.4);
+      -webkit-backdrop-filter: blur(24px) saturate(1.4);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .glass::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    }
+    .glass::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 50%, rgba(255,255,255,0.02) 100%);
+      pointer-events: none;
+      border-radius: 24px;
     }
 
     /* ---- Header ---- */
     .header {
-      background: rgba(15, 25, 40, 0.9);
-      backdrop-filter: blur(10px);
-      padding: 16px 24px;
-      border-bottom: 1px solid rgba(0, 212, 255, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 50;
+      position: sticky; top: 0; z-index: 50;
+      padding: 16px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(6, 6, 18, 0.7);
+      backdrop-filter: blur(30px) saturate(1.5);
+      -webkit-backdrop-filter: blur(30px) saturate(1.5);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
     }
-
     .header h1 {
-      font-size: 1.5rem;
+      font-size: 1.4rem; font-weight: 800;
       background: linear-gradient(135deg, #00d4ff, #00ff88);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
     }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .conn-dot { width: 8px; height: 8px; border-radius: 50%; background: #ff3333; transition: 0.3s; }
+    .conn-dot.on { background: #00ff88; box-shadow: 0 0 10px #00ff88; }
+    .conn-label { font-size: 0.75rem; color: #666; }
+    .badge { font-size: 0.65rem; padding: 5px 14px; border-radius: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
+    .badge-safe { background: rgba(0,255,136,0.08); color: #00ff88; border: 1px solid rgba(0,255,136,0.2); }
+    .badge-warning { background: rgba(255,170,0,0.1); color: #ffaa00; border: 1px solid rgba(255,170,0,0.3); animation: pulseY 1.2s infinite; }
+    .badge-danger { background: rgba(255,51,51,0.12); color: #ff3333; border: 1px solid rgba(255,51,51,0.3); animation: pulseR 0.6s infinite; }
+    @keyframes pulseY { 0%,100%{box-shadow:0 0 5px rgba(255,170,0,0.15)} 50%{box-shadow:0 0 18px rgba(255,170,0,0.4)} }
+    @keyframes pulseR { 0%,100%{box-shadow:0 0 5px rgba(255,51,51,0.2)} 50%{box-shadow:0 0 30px rgba(255,51,51,0.6)} }
 
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .connection-status {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.75rem;
-      color: #888;
-    }
-
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #ff3333;
-      transition: background 0.3s;
-    }
-    .dot.connected { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
-
-    .status-badge {
-      font-size: 0.7rem;
-      padding: 5px 14px;
-      border-radius: 20px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-    }
-    .badge-safe { background: rgba(0, 255, 136, 0.1); color: #00ff88; border: 1px solid rgba(0, 255, 136, 0.3); }
-    .badge-warning { background: rgba(255, 170, 0, 0.15); color: #ffaa00; border: 1px solid rgba(255, 170, 0, 0.4); animation: pulse-yellow 1s infinite; }
-    .badge-danger { background: rgba(255, 51, 51, 0.15); color: #ff3333; border: 1px solid rgba(255, 51, 51, 0.4); animation: pulse-red 0.5s infinite; }
-
-    @keyframes pulse-yellow { 0%, 100% { box-shadow: 0 0 5px rgba(255, 170, 0, 0.2); } 50% { box-shadow: 0 0 15px rgba(255, 170, 0, 0.5); } }
-    @keyframes pulse-red { 0%, 100% { box-shadow: 0 0 5px rgba(255, 51, 51, 0.2); } 50% { box-shadow: 0 0 25px rgba(255, 51, 51, 0.7); } }
-
-    /* ---- Main Layout ---- */
+    /* ---- Layout ---- */
     .main {
-      display: grid;
-      grid-template-columns: 1fr 320px;
-      gap: 24px;
-      padding: 24px;
-      max-width: 1200px;
-      margin: 0 auto;
+      position: relative; z-index: 1;
+      display: grid; grid-template-columns: 1fr 340px; gap: 24px;
+      padding: 28px; max-width: 1240px; margin: 0 auto;
     }
-    @media (max-width: 768px) { .main { grid-template-columns: 1fr; padding: 16px; gap: 16px; } }
+    @media (max-width: 860px) { .main { grid-template-columns: 1fr; padding: 16px; gap: 16px; } }
 
-    /* ---- Gauge ---- */
-    .gauge-container {
-      background: rgba(15, 25, 40, 0.6);
-      backdrop-filter: blur(10px);
-      border-radius: 20px;
-      padding: 36px 32px;
-      border: 1px solid rgba(0, 212, 255, 0.15);
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .gauge-container::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle at 50% 80%, rgba(0, 212, 255, 0.03) 0%, transparent 50%);
-      pointer-events: none;
-    }
-
-    .gauge-wrapper {
-      position: relative;
-      width: 300px;
-      height: 170px;
-      margin: 0 auto 20px;
-    }
-
-    .gauge-bg {
-      width: 300px;
-      height: 150px;
+    /* ---- Gauge Card ---- */
+    .gauge-card { padding: 40px 36px; text-align: center; }
+    .gauge-wrap { position: relative; width: 300px; height: 170px; margin: 0 auto 20px; }
+    .gauge-arc {
+      width: 300px; height: 150px;
       border-radius: 150px 150px 0 0;
-      background: rgba(10, 15, 30, 0.8);
-      border: 6px solid rgba(0, 212, 255, 0.2);
+      background: rgba(0,0,0,0.4);
+      border: 4px solid rgba(255,255,255,0.06);
       border-bottom: none;
-      position: relative;
-      overflow: hidden;
+      position: relative; overflow: hidden;
     }
+    .gauge-zone { position: absolute; bottom: 0; width: 100%; height: 100%; }
+    .gz-green { background: conic-gradient(from 0.75turn, transparent 0%, rgba(0,255,136,0.12) 30%, transparent 50%); }
+    .gz-yellow { background: conic-gradient(from 0.65turn, transparent 0%, rgba(255,170,0,0.08) 15%, transparent 30%); }
+    .gz-red { background: conic-gradient(from 0.5turn, transparent 0%, rgba(255,51,51,0.12) 25%, transparent 50%); }
 
-    .gauge-zone {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      height: 100%;
-    }
-    .gauge-zone-green { background: conic-gradient(from 0.75turn, transparent 0%, rgba(0, 255, 136, 0.15) 30%, transparent 50%); }
-    .gauge-zone-yellow { background: conic-gradient(from 0.65turn, transparent 0%, rgba(255, 170, 0, 0.1) 15%, transparent 30%); }
-    .gauge-zone-red { background: conic-gradient(from 0.5turn, transparent 0%, rgba(255, 51, 51, 0.15) 25%, transparent 50%); }
-
-    .gauge-needle {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      width: 3px;
-      height: 130px;
-      background: linear-gradient(to top, rgba(255,255,255,0.8), #00d4ff);
+    .needle {
+      position: absolute; bottom: 0; left: 50%;
+      width: 3px; height: 130px;
+      background: linear-gradient(to top, rgba(255,255,255,0.7), #00d4ff);
       transform-origin: bottom center;
       transform: translateX(-50%) rotate(0deg);
-      transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+      transition: transform 0.5s cubic-bezier(0.25,0.8,0.25,1);
       border-radius: 2px;
-      box-shadow: 0 0 12px rgba(0, 212, 255, 0.6);
+      box-shadow: 0 0 16px rgba(0,212,255,0.5);
+    }
+    .needle-dot {
+      position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
+      width: 20px; height: 20px;
+      background: radial-gradient(circle, #00d4ff, #006688);
+      border-radius: 50%; z-index: 2;
+      box-shadow: 0 0 18px rgba(0,212,255,0.4);
     }
 
-    .gauge-center {
-      position: absolute;
-      bottom: -10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 20px;
-      height: 20px;
-      background: radial-gradient(circle, #00d4ff, #0088aa);
-      border-radius: 50%;
-      z-index: 2;
-      box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+    .gauge-labels { display: flex; justify-content: space-between; margin-top: 12px; font-size: 0.65rem; color: #444; text-transform: uppercase; letter-spacing: 1px; }
+
+    .tilt-num {
+      font-size: 4.5rem; font-weight: 900; margin: 20px 0 4px;
+      font-variant-numeric: tabular-nums; transition: 0.3s;
+      letter-spacing: -2px;
     }
+    .tilt-num.safe { color: #00ff88; text-shadow: 0 0 30px rgba(0,255,136,0.2); }
+    .tilt-num.warning { color: #ffaa00; text-shadow: 0 0 30px rgba(255,170,0,0.3); }
+    .tilt-num.danger { color: #ff3333; text-shadow: 0 0 40px rgba(255,51,51,0.5); animation: numPulse 0.6s infinite; }
+    @keyframes numPulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
 
-    .gauge-labels {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 10px;
-      font-size: 0.7rem;
-      color: #555;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
+    .tilt-unit { font-size: 0.85rem; color: #444; margin-bottom: 6px; }
+    .tilt-dev { font-size: 0.8rem; color: #555; }
 
-    .gauge-value {
-      font-size: 4rem;
-      font-weight: 800;
-      margin: 16px 0 4px;
-      transition: color 0.3s;
-      font-variant-numeric: tabular-nums;
-    }
-    .gauge-value.safe { color: #00ff88; text-shadow: 0 0 20px rgba(0, 255, 136, 0.3); }
-    .gauge-value.warning { color: #ffaa00; text-shadow: 0 0 20px rgba(255, 170, 0, 0.3); }
-    .gauge-value.danger { color: #ff3333; text-shadow: 0 0 30px rgba(255, 51, 51, 0.5); animation: text-pulse 0.5s infinite; }
-
-    @keyframes text-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-
-    .gauge-unit { font-size: 1rem; color: #555; margin-bottom: 4px; }
-    .tilt-label { font-size: 0.85rem; color: #666; }
-
-    .threshold-visual {
-      display: flex;
-      gap: 3px;
-      margin-top: 16px;
-      padding: 0 20px;
-    }
-    .threshold-bar { flex: 1; height: 5px; border-radius: 3px; background: #1a1a2e; }
-    .threshold-bar.green { background: linear-gradient(90deg, #0d4a2e, #00ff88, #0d4a2e); }
-    .threshold-bar.yellow { background: linear-gradient(90deg, #4a3a0d, #ffaa00, #4a3a0d); }
-    .threshold-bar.red { background: linear-gradient(90deg, #4a0d0d, #ff3333, #4a0d0d); }
+    .bar-row { display: flex; gap: 3px; margin-top: 18px; padding: 0 16px; }
+    .bar-seg { flex: 1; height: 5px; border-radius: 3px; background: #111; }
+    .bar-seg.g { background: linear-gradient(90deg, #0a3320, #00ff88, #0a3320); }
+    .bar-seg.y { background: linear-gradient(90deg, #33290a, #ffaa00, #33290a); }
+    .bar-seg.r { background: linear-gradient(90deg, #330a0a, #ff3333, #330a0a); }
 
     /* ---- Sidebar ---- */
     .sidebar { display: flex; flex-direction: column; gap: 16px; }
 
-    .card {
-      background: rgba(15, 25, 40, 0.6);
-      backdrop-filter: blur(10px);
-      border-radius: 16px;
-      padding: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    .card h3 {
-      font-size: 0.75rem;
-      color: #555;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      margin-bottom: 14px;
-    }
+    .s-card { padding: 22px; }
+    .s-card h3 { font-size: 0.7rem; color: #444; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 14px; font-weight: 600; }
 
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-    }
+    .info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
     .info-row:last-child { border-bottom: none; }
-    .info-label { color: #666; font-size: 0.8rem; }
-    .info-value { color: #e0e0e0; font-weight: 600; font-size: 0.85rem; }
+    .info-l { color: #555; font-size: 0.78rem; }
+    .info-v { color: #ccc; font-weight: 600; font-size: 0.82rem; }
 
-    /* ---- Sound Toggle ---- */
-    .sound-toggle {
-      background: rgba(30, 40, 60, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #e0e0e0;
-      padding: 12px 20px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    /* ---- Toggle Buttons ---- */
+    .toggle-btn {
       width: 100%;
-      transition: all 0.2s;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #ccc;
+      padding: 14px 18px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      display: flex; align-items: center; justify-content: space-between;
+      transition: all 0.25s;
+      margin-bottom: 10px;
+      font-family: inherit;
     }
-    .sound-toggle:hover { background: rgba(40, 55, 80, 0.8); border-color: rgba(0, 212, 255, 0.3); }
-    .sound-toggle.active { background: rgba(0, 255, 136, 0.1); border-color: rgba(0, 255, 136, 0.3); }
-    .sound-toggle .sound-left { display: flex; align-items: center; gap: 10px; }
-    .sound-toggle .sound-right { font-size: 1.2rem; }
+    .toggle-btn:last-of-type { margin-bottom: 0; }
+    .toggle-btn:hover { background: rgba(255,255,255,0.06); border-color: rgba(0,212,255,0.2); }
+    .toggle-btn.on { background: rgba(0,255,136,0.06); border-color: rgba(0,255,136,0.25); }
+    .toggle-btn .t-left { display: flex; align-items: center; gap: 10px; }
+    .toggle-dot { width: 8px; height: 8px; border-radius: 50%; transition: 0.3s; }
+    .toggle-dot.off { background: #ff3333; box-shadow: 0 0 6px rgba(255,51,51,0.4); }
+    .toggle-dot.on { background: #00ff88; box-shadow: 0 0 8px rgba(0,255,136,0.5); }
 
-    .sound-hint {
-      font-size: 0.7rem;
-      color: #444;
-      margin-top: 8px;
-      line-height: 1.4;
-    }
+    .toggle-hint { font-size: 0.68rem; color: #333; margin-top: 10px; line-height: 1.4; }
 
     /* ---- Log ---- */
-    .log-list {
-      max-height: 220px;
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: #222 transparent;
-    }
-    .log-entry {
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-      font-size: 0.78rem;
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-    }
-    .log-time { color: #444; white-space: nowrap; }
-    .log-tilt { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
-    .log-tilt.safe { color: #00ff88; }
-    .log-tilt.warning { color: #ffaa00; }
-    .log-tilt.danger { color: #ff3333; }
+    .log-wrap { max-height: 240px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #1a1a2e transparent; }
+    .log-entry { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.75rem; display: flex; justify-content: space-between; }
+    .log-t { color: #333; white-space: nowrap; }
+    .log-v { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .log-v.safe { color: #00ff88; }
+    .log-v.warning { color: #ffaa00; }
+    .log-v.danger { color: #ff3333; }
 
-    /* ---- Alert Overlay ---- */
-    .alert-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100; pointer-events: none; }
-    .alert-overlay.active-red { display: block; background: radial-gradient(ellipse at center, rgba(255, 0, 0, 0.2) 0%, transparent 70%); animation: alert-flash 0.8s infinite; }
-    .alert-overlay.active-yellow { display: block; background: radial-gradient(ellipse at center, rgba(255, 170, 0, 0.12) 0%, transparent 70%); animation: alert-flash 1.5s infinite; }
-    @keyframes alert-flash { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+    /* ---- Overlays ---- */
+    .overlay { display: none; position: fixed; inset: 0; z-index: 100; pointer-events: none; }
+    .overlay.red { display: block; background: radial-gradient(ellipse at center, rgba(255,0,0,0.18) 0%, transparent 70%); animation: flash 0.7s infinite; }
+    .overlay.yellow { display: block; background: radial-gradient(ellipse at center, rgba(255,170,0,0.1) 0%, transparent 70%); animation: flash 1.5s infinite; }
+    @keyframes flash { 0%,100%{opacity:0.2} 50%{opacity:1} }
 
-    /* ---- Warning Banner ---- */
-    .warning-banner { display: none; padding: 14px 20px; text-align: center; font-weight: 700; font-size: 0.9rem; letter-spacing: 2px; text-transform: uppercase; }
-    .warning-banner.yellow { display: block; background: linear-gradient(90deg, rgba(74, 58, 13, 0.9), rgba(107, 85, 16, 0.9), rgba(74, 58, 13, 0.9)); color: #ffaa00; border-bottom: 2px solid #ffaa00; animation: banner-flash 1.5s infinite; }
-    .warning-banner.red { display: block; background: linear-gradient(90deg, rgba(74, 13, 13, 0.95), rgba(107, 16, 16, 0.95), rgba(74, 13, 13, 0.95)); color: #ff3333; border-bottom: 2px solid #ff3333; animation: banner-flash 0.5s infinite; }
-    @keyframes banner-flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+    .alert-bar { display: none; padding: 14px 20px; text-align: center; font-weight: 700; font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase; }
+    .alert-bar.yellow { display: block; background: linear-gradient(90deg, rgba(50,40,10,0.95), rgba(70,55,10,0.95), rgba(50,40,10,0.95)); color: #ffaa00; border-bottom: 2px solid rgba(255,170,0,0.5); }
+    .alert-bar.red { display: block; background: linear-gradient(90deg, rgba(60,10,10,0.95), rgba(80,12,12,0.95), rgba(60,10,10,0.95)); color: #ff3333; border-bottom: 2px solid rgba(255,51,51,0.5); animation: bannerFlash 0.5s infinite; }
+    @keyframes bannerFlash { 0%,100%{opacity:1} 50%{opacity:0.6} }
 
-    /* ---- Enable Sound Banner ---- */
-    .enable-sound-banner {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(135deg, #00d4ff, #0099cc);
-      color: #000;
-      padding: 14px 28px;
-      border-radius: 16px;
-      font-weight: 700;
-      font-size: 0.85rem;
-      z-index: 200;
-      cursor: pointer;
-      box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .enable-sound-banner:hover { transform: translateX(-50%) scale(1.05); box-shadow: 0 6px 30px rgba(0, 212, 255, 0.6); }
+    /* ---- Footer ---- */
+    .footer { text-align: center; padding: 24px; font-size: 0.65rem; color: #222; position: relative; z-index: 1; }
   </style>
 </head>
 <body>
-  <div id="alert-overlay" class="alert-overlay"></div>
-  <div id="warning-banner" class="warning-banner"></div>
+  <div class="bg-layer">
+    <div class="bg-orb"></div>
+    <div class="bg-orb"></div>
+    <div class="bg-orb"></div>
+  </div>
 
+  <div id="overlay" class="overlay"></div>
+  <div id="alert-bar" class="alert-bar"></div>
 
   <div class="header">
     <h1>🌍 Landsafe AI</h1>
     <div class="header-right">
-      <div class="connection-status">
-        <div id="conn-dot" class="dot"></div>
-        <span id="conn-text">Connecting...</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div id="conn-dot" class="conn-dot"></div>
+        <span id="conn-label" class="conn-label">Connecting...</span>
       </div>
-      <span id="status-badge" class="status-badge badge-safe">SAFE</span>
+      <span id="badge" class="badge badge-safe">SAFE</span>
     </div>
   </div>
 
   <div class="main">
-    <div class="gauge-container">
-      <div class="gauge-wrapper">
-        <div class="gauge-bg">
-          <div class="gauge-zone gauge-zone-green"></div>
-          <div class="gauge-zone gauge-zone-yellow"></div>
-          <div class="gauge-zone gauge-zone-red"></div>
-          <div class="gauge-needle" id="needle"></div>
-          <div class="gauge-center"></div>
+    <!-- Gauge -->
+    <div class="gauge-card glass">
+      <div class="gauge-wrap">
+        <div class="gauge-arc">
+          <div class="gauge-zone gz-green"></div>
+          <div class="gauge-zone gz-yellow"></div>
+          <div class="gauge-zone gz-red"></div>
+          <div class="needle" id="needle"></div>
+          <div class="needle-dot"></div>
         </div>
       </div>
       <div class="gauge-labels">
@@ -343,178 +255,69 @@
         <span>0° LEVEL</span>
         <span>40°+ DANGER</span>
       </div>
-      <div class="gauge-value safe" id="tilt-value">0.00°</div>
-      <div class="gauge-unit">Tilt Angle</div>
-      <div class="tilt-label" id="tilt-label">Waiting for sensor data...</div>
-      <div class="threshold-visual">
-        <div class="threshold-bar green"></div>
-        <div class="threshold-bar green"></div>
-        <div class="threshold-bar green"></div>
-        <div class="threshold-bar yellow"></div>
-        <div class="threshold-bar yellow"></div>
-        <div class="threshold-bar yellow"></div>
-        <div class="threshold-bar red"></div>
-        <div class="threshold-bar red"></div>
-        <div class="threshold-bar red"></div>
+      <div class="tilt-num safe" id="tilt-val">0.00°</div>
+      <div class="tilt-unit">Tilt Angle</div>
+      <div class="tilt-dev" id="tilt-dev">Waiting for sensor data...</div>
+      <div class="bar-row">
+        <div class="bar-seg g"></div><div class="bar-seg g"></div><div class="bar-seg g"></div>
+        <div class="bar-seg y"></div><div class="bar-seg y"></div><div class="bar-seg y"></div>
+        <div class="bar-seg r"></div><div class="bar-seg r"></div><div class="bar-seg r"></div>
       </div>
     </div>
 
+    <!-- Sidebar -->
     <div class="sidebar">
-      <div class="card">
+      <div class="s-card glass">
         <h3>📡 Sensor Info</h3>
-        <div class="info-row">
-          <span class="info-label">Device</span>
-          <span class="info-value" id="device-id">—</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Status</span>
-          <span class="info-value" id="device-status">—</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Last Update</span>
-          <span class="info-value" id="last-update">—</span>
-        </div>
+        <div class="info-row"><span class="info-l">Device</span><span class="info-v" id="dev-id">—</span></div>
+        <div class="info-row"><span class="info-l">Status</span><span class="info-v" id="dev-status">—</span></div>
+        <div class="info-row"><span class="info-l">Last Update</span><span class="info-v" id="dev-time">—</span></div>
       </div>
 
-      <div class="card">
+      <div class="s-card glass">
         <h3>🔔 Alert Controls</h3>
-        <button id="sound-btn" class="sound-toggle" onclick="toggleSound()" style="margin-bottom:8px;">
-          <span class="sound-left">
-            <span id="sound-icon">🔇</span>
-            <span id="sound-text">Siren OFF</span>
-          </span>
-          <span class="sound-right" id="sound-status" style="color:#ff3333;">●</span>
+        <button id="siren-btn" class="toggle-btn" onclick="toggleSiren()">
+          <span class="t-left"><span id="siren-ico">🔇</span><span id="siren-txt">Siren OFF</span></span>
+          <span class="toggle-dot off" id="siren-dot"></span>
         </button>
-        <button id="vibrate-btn" class="sound-toggle" onclick="toggleVibrate()">
-          <span class="sound-left">
-            <span id="vibrate-icon">📳</span>
-            <span id="vibrate-text">Vibrate OFF</span>
-          </span>
-          <span class="sound-right" id="vibrate-status" style="color:#ff3333;">●</span>
+        <button id="vib-btn" class="toggle-btn" onclick="toggleVibrate()">
+          <span class="t-left"><span id="vib-ico">📴</span><span id="vib-txt">Vibrate OFF</span></span>
+          <span class="toggle-dot off" id="vib-dot"></span>
         </button>
-        <p class="sound-hint">Toggle siren and vibration for alerts.</p>
+        <p class="toggle-hint">Toggle siren & vibration for real-time alerts.</p>
       </div>
 
-      <div class="card">
+      <div class="s-card glass">
         <h3>📊 Live Log</h3>
-        <div class="log-list" id="log-list">
-          <div class="log-entry">
-            <span class="log-time">--:--</span>
-            <span class="log-tilt safe">Waiting for data...</span>
-          </div>
+        <div class="log-wrap" id="log-wrap">
+          <div class="log-entry"><span class="log-t">--:--</span><span class="log-v safe">Waiting for data...</span></div>
         </div>
       </div>
     </div>
   </div>
 
+  <div class="footer">Landsafe AI — Real-time Landslide Monitoring</div>
+
   <script>
-    const API_URL = `${window.location.origin}/api/latest`;
-    const HISTORY_URL = `${window.location.origin}/api/history`;
+    const API = `${location.origin}/api/latest`;
+    const HIST = `${location.origin}/api/history`;
 
-    let soundEnabled = false;
-    let vibrateEnabled = false;
-    let audioCtx = null;
-    let sirenOsc = null;
-    let sirenGain = null;
-    let lastStatus = 'safe';
-    let lastTimestamp = '';
+    let sirenOn = false, vibOn = false;
+    let audioCtx = null, sirenOsc = null, sirenGain = null;
+    let lastStatus = 'safe', lastTS = '';
+    let vibInterval = null; // For continuous vibration
 
-    const needle = document.getElementById('needle');
-    const tiltValue = document.getElementById('tilt-value');
-    const tiltLabel = document.getElementById('tilt-label');
-    const statusBadge = document.getElementById('status-badge');
-    const connDot = document.getElementById('conn-dot');
-    const connText = document.getElementById('conn-text');
-    const deviceId = document.getElementById('device-id');
-    const deviceStatus = document.getElementById('device-status');
-    const lastUpdate = document.getElementById('last-update');
-    const logList = document.getElementById('log-list');
-    const alertOverlay = document.getElementById('alert-overlay');
-    const warningBanner = document.getElementById('warning-banner');
+    const $ = id => document.getElementById(id);
 
-    // ---- Enable audio on first click ----
-    function enableAudio() {
-      initAudio();
-      document.removeEventListener('click', enableAudio);
-      document.removeEventListener('touchstart', enableAudio);
-    }
-    document.addEventListener('click', enableAudio);
-    document.addEventListener('touchstart', enableAudio);
-
-    // ---- Poll ----
-    async function pollData() {
-      try {
-        const res = await fetch(API_URL);
-        const json = await res.json();
-        if (json.data && json.data.timestamp !== lastTimestamp) {
-          lastTimestamp = json.data.timestamp;
-          updateDashboard(json.data);
-          connDot.classList.add('connected');
-          connText.textContent = 'Live';
-        }
-      } catch (e) {
-        connDot.classList.remove('connected');
-        connText.textContent = 'Offline';
-      }
-    }
-
-    // ---- Update ----
-    function updateDashboard(data) {
-      const { tilt, status, device_id, timestamp } = data;
-
-      const clampedTilt = Math.max(-90, Math.min(90, tilt));
-      const rotation = (clampedTilt / 90) * 90;
-      needle.style.transform = `translateX(-50%) rotate(${-rotation}deg)`;
-
-      tiltValue.textContent = `${tilt.toFixed(2)}°`;
-      tiltValue.className = `gauge-value ${status}`;
-      tiltLabel.textContent = `Device: ${device_id}`;
-      statusBadge.textContent = status.toUpperCase();
-      statusBadge.className = `status-badge badge-${status}`;
-
-      deviceId.textContent = device_id;
-      deviceStatus.textContent = status.toUpperCase();
-      deviceStatus.style.color = status === 'danger' ? '#ff3333' : status === 'warning' ? '#ffaa00' : '#00ff88';
-
-      lastUpdate.textContent = new Date(timestamp).toLocaleTimeString();
-
-      alertOverlay.className = 'alert-overlay';
-      warningBanner.className = 'warning-banner';
-
-      if (status === 'danger') {
-        alertOverlay.classList.add('active-red');
-        warningBanner.className = 'warning-banner red';
-        warningBanner.textContent = '⚠️ DANGER — GROUND SHIFT DETECTED';
-        if (audioCtx && soundEnabled) startSiren();
-        if (vibrateEnabled && navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 300, 100, 500]);
-      } else if (status === 'warning') {
-        alertOverlay.classList.add('active-yellow');
-        warningBanner.className = 'warning-banner yellow';
-        warningBanner.textContent = '⚠ WARNING — TILT ANOMALY DETECTED';
-        if (vibrateEnabled && navigator.vibrate) navigator.vibrate([200, 200, 200]);
-      } else {
-        stopSiren();
-        if (navigator.vibrate) navigator.vibrate(0);
-      }
-
-      addLogEntry(tilt, status, timestamp);
-      lastStatus = status;
-    }
-
-    function addLogEntry(tilt, status, timestamp) {
-      const time = new Date(timestamp).toLocaleTimeString();
-      const entry = document.createElement('div');
-      entry.className = 'log-entry';
-      entry.innerHTML = `<span class="log-time">${time}</span><span class="log-tilt ${status}">${tilt.toFixed(2)}° ${status === 'danger' ? '🔴' : status === 'warning' ? '🟡' : '🟢'}</span>`;
-      logList.insertBefore(entry, logList.firstChild);
-      while (logList.children.length > 50) logList.removeChild(logList.lastChild);
-    }
-
-    // ---- Sound ----
+    // ---- Audio init on user gesture ----
     function initAudio() {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
     }
+    document.addEventListener('click', initAudio, { once: false });
+    document.addEventListener('touchstart', initAudio, { once: false });
 
+    // ---- Siren ----
     function startSiren() {
       initAudio();
       if (sirenOsc) return;
@@ -530,7 +333,7 @@
       sirenOsc.start();
       sirenOsc.onended = () => {
         sirenOsc = null;
-        if (lastStatus !== 'safe' && soundEnabled) startSiren();
+        if (lastStatus !== 'safe' && sirenOn) startSiren();
       };
     }
 
@@ -538,64 +341,146 @@
       if (sirenOsc) { try { sirenOsc.stop(); } catch(e) {} sirenOsc = null; }
     }
 
-    function toggleSound() {
-      soundEnabled = !soundEnabled;
-      const btn = document.getElementById('sound-btn');
-      const icon = document.getElementById('sound-icon');
-      const text = document.getElementById('sound-text');
-      const status = document.getElementById('sound-status');
-
-      if (soundEnabled) {
-        btn.classList.add('active');
-        icon.textContent = '🔊';
-        text.textContent = 'Siren ON';
-        status.style.color = '#00ff88';
-        initAudio();
-        if (lastStatus !== 'safe') startSiren();
-      } else {
-        btn.classList.remove('active');
-        icon.textContent = '🔇';
-        text.textContent = 'Siren OFF';
-        status.style.color = '#ff3333';
-        stopSiren();
-      }
+    // ---- Continuous Vibration ----
+    function startContinuousVibrate() {
+      if (vibInterval) return; // Already running
+      // Strong vibration pattern that repeats
+      vibInterval = setInterval(() => {
+        if (navigator.vibrate) {
+          navigator.vibrate([400, 100, 400, 100, 400]); // buzz-pause-buzz-pause-buzz
+        }
+      }, 1500); // Repeat every 1.5 seconds
+      // Also do one immediate vibration
+      if (navigator.vibrate) navigator.vibrate([400, 100, 400, 100, 400]);
     }
 
-    async function loadHistory() {
-      try {
-        const res = await fetch(HISTORY_URL);
-        const json = await res.json();
-        if (json.data && json.data.length > 0) {
-          updateDashboard(json.data[json.data.length - 1]);
-          json.data.slice(-20).forEach(d => addLogEntry(d.tilt, d.status, d.timestamp));
-        }
-      } catch (e) {}
+    function stopContinuousVibrate() {
+      if (vibInterval) {
+        clearInterval(vibInterval);
+        vibInterval = null;
+      }
+      if (navigator.vibrate) navigator.vibrate(0); // Stop immediately
+    }
+
+    function lightVibrate() {
+      if (!vibOn || !navigator.vibrate) return;
+      navigator.vibrate([150, 200, 150]);
+    }
+
+    // ---- Toggle buttons ----
+    function toggleSiren() {
+      sirenOn = !sirenOn;
+      $('siren-btn').classList.toggle('on', sirenOn);
+      $('siren-ico').textContent = sirenOn ? '🔊' : '🔇';
+      $('siren-txt').textContent = sirenOn ? 'Siren ON' : 'Siren OFF';
+      $('siren-dot').className = 'toggle-dot ' + (sirenOn ? 'on' : 'off');
+      if (sirenOn) { initAudio(); if (lastStatus !== 'safe') startSiren(); }
+      else stopSiren();
     }
 
     function toggleVibrate() {
-      vibrateEnabled = !vibrateEnabled;
-      const btn = document.getElementById('vibrate-btn');
-      const icon = document.getElementById('vibrate-icon');
-      const text = document.getElementById('vibrate-text');
-      const status = document.getElementById('vibrate-status');
-
-      if (vibrateEnabled) {
-        btn.classList.add('active');
-        icon.textContent = '📳';
-        text.textContent = 'Vibrate ON';
-        status.style.color = '#00ff88';
-        if (navigator.vibrate) navigator.vibrate(200);  // Test vibration
+      vibOn = !vibOn;
+      $('vib-btn').classList.toggle('on', vibOn);
+      $('vib-ico').textContent = vibOn ? '📳' : '📴';
+      $('vib-txt').textContent = vibOn ? 'Vibrate ON' : 'Vibrate OFF';
+      $('vib-dot').className = 'toggle-dot ' + (vibOn ? 'on' : 'off');
+      if (vibOn) {
+        navigator.vibrate && navigator.vibrate(200); // Test buzz
+        // If already in danger/warning, start continuous now
+        if (lastStatus === 'danger') startContinuousVibrate();
+        else if (lastStatus === 'warning') lightVibrate();
       } else {
-        btn.classList.remove('active');
-        icon.textContent = '📴';
-        text.textContent = 'Vibrate OFF';
-        status.style.color = '#ff3333';
-        if (navigator.vibrate) navigator.vibrate(0);
+        stopContinuousVibrate();
       }
     }
 
-    loadHistory();
-    setInterval(pollData, 1000);
+    // ---- Update dashboard ----
+    function update(data) {
+      const { tilt, status, device_id, timestamp } = data;
+
+      const clamped = Math.max(-90, Math.min(90, tilt));
+      $('needle').style.transform = `translateX(-50%) rotate(${-(clamped / 90) * 90}deg)`;
+
+      $('tilt-val').textContent = `${tilt.toFixed(2)}°`;
+      $('tilt-val').className = `tilt-num ${status}`;
+      $('tilt-dev').textContent = `Device: ${device_id}`;
+      $('badge').textContent = status.toUpperCase();
+      $('badge').className = `badge badge-${status}`;
+
+      $('dev-id').textContent = device_id;
+      $('dev-status').textContent = status.toUpperCase();
+      $('dev-status').style.color = status === 'danger' ? '#ff3333' : status === 'warning' ? '#ffaa00' : '#00ff88';
+      $('dev-time').textContent = new Date(timestamp).toLocaleTimeString();
+
+      // Overlays
+      $('overlay').className = 'overlay';
+      $('alert-bar').className = 'alert-bar';
+
+      if (status === 'danger') {
+        $('overlay').classList.add('red');
+        $('alert-bar').className = 'alert-bar red';
+        $('alert-bar').textContent = '⚠️ DANGER — GROUND SHIFT DETECTED';
+        if (sirenOn) startSiren();
+        if (vibOn) startContinuousVibrate();
+      } else if (status === 'warning') {
+        $('overlay').classList.add('yellow');
+        $('alert-bar').className = 'alert-bar yellow';
+        $('alert-bar').textContent = '⚠ WARNING — TILT ANOMALY DETECTED';
+        if (vibOn) lightVibrate();
+        // If was in danger before, stop continuous vibrate
+        if (lastStatus === 'danger') stopContinuousVibrate();
+      } else {
+        stopSiren();
+        stopContinuousVibrate();
+      }
+
+      // Log
+      const t = new Date(timestamp).toLocaleTimeString();
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.innerHTML = `<span class="log-t">${t}</span><span class="log-v ${status}">${tilt.toFixed(2)}° ${status === 'danger' ? '🔴' : status === 'warning' ? '🟡' : '🟢'}</span>`;
+      $('log-wrap').insertBefore(entry, $('log-wrap').firstChild);
+      while ($('log-wrap').children.length > 50) $('log-wrap').removeChild($('log-wrap').lastChild);
+
+      lastStatus = status;
+    }
+
+    // ---- Poll ----
+    async function poll() {
+      try {
+        const r = await fetch(API);
+        const j = await r.json();
+        if (j.data && j.data.timestamp !== lastTS) {
+          lastTS = j.data.timestamp;
+          update(j.data);
+          $('conn-dot').classList.add('on');
+          $('conn-label').textContent = 'Live';
+        }
+      } catch(e) {
+        $('conn-dot').classList.remove('on');
+        $('conn-label').textContent = 'Offline';
+      }
+    }
+
+    async function loadHist() {
+      try {
+        const r = await fetch(HIST);
+        const j = await r.json();
+        if (j.data && j.data.length > 0) {
+          update(j.data[j.data.length - 1]);
+          j.data.slice(-20).forEach(d => {
+            const t = new Date(d.timestamp).toLocaleTimeString();
+            const e = document.createElement('div');
+            e.className = 'log-entry';
+            e.innerHTML = `<span class="log-t">${t}</span><span class="log-v ${d.status}">${d.tilt.toFixed(2)}° ${d.status === 'danger' ? '🔴' : d.status === 'warning' ? '🟡' : '🟢'}</span>`;
+            $('log-wrap').appendChild(e);
+          });
+        }
+      } catch(e) {}
+    }
+
+    loadHist();
+    setInterval(poll, 1000);
   </script>
 </body>
 </html>

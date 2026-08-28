@@ -1,3 +1,14 @@
+/*
+ * Landsafe AI - MPU-6500/9250 Tilt Detector
+ * ESP32 + MPU sensor (I2C)
+ *
+ * Wiring:
+ *   MPU VCC  -> ESP32 3.3V
+ *   MPU GND  -> ESP32 GND
+ *   MPU SDA  -> ESP32 GPIO 21
+ *   MPU SCL  -> ESP32 GPIO 22
+ */
+
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <Wire.h>
@@ -7,50 +18,49 @@ const char* WIFI_PASS = "";
 const char* SERVER_URL = "https://landsafe-ai.onrender.com/api/tilt";
 const char* DEVICE_ID = "sensor-001";
 
-#define ADXL345_ADDR 0x53
-#define REG_DEVID     0x00
-#define REG_OFSX      0x1E
-#define REG_OFSY      0x1F
-#define REG_OFSZ      0x20
-#define REG_BW_RATE   0x2C
-#define REG_POWER_CTL 0x2D
-#define REG_DATA_FORMAT 0x31
-#define REG_DATAX0    0x32
-#define SENSITIVITY   0.0039f
+#define MPU_ADDR      0x68
+#define SENSITIVITY_2G 16384.0
 
-// ---- Thresholds ----
-#define TILT_YELLOW  10.0   // Warning at 10 degrees
-#define TILT_RED     40.0   // Danger at 40 degrees
-#define DEAD_ZONE    2.0
+#define TILT_YELLOW   10.0
+#define TILT_RED      40.0
+#define DEAD_ZONE     2.0
 
 #define LED_BUILTIN_PIN 2
-#define WIFI_LED_PIN 4
 
+// ---- Struct FIRST ----
 struct AccelData { float x; float y; float z; };
 
+// Calibration reference
+float refX = 0, refY = 0, refZ = 0;
+
+// ---- I2C helpers ----
 void writeRegister(uint8_t reg, uint8_t value) {
-  Wire.beginTransmission(ADXL345_ADDR); Wire.write(reg); Wire.write(value); Wire.endTransmission();
+  Wire.beginTransmission(MPU_ADDR); Wire.write(reg); Wire.write(value); Wire.endTransmission();
 }
 uint8_t readRegister(uint8_t reg) {
-  Wire.beginTransmission(ADXL345_ADDR); Wire.write(reg); Wire.endTransmission(false);
-  Wire.requestFrom(ADXL345_ADDR, (uint8_t)1); return Wire.read();
-}
-void readRegisters(uint8_t reg, uint8_t *buffer, uint8_t count) {
-  Wire.beginTransmission(ADXL345_ADDR); Wire.write(reg); Wire.endTransmission(false);
-  Wire.requestFrom(ADXL345_ADDR, count);
-  for (uint8_t i = 0; i < count; i++) buffer[i] = Wire.read();
+  Wire.beginTransmission(MPU_ADDR); Wire.write(reg); Wire.endTransmission(false);
+  Wire.requestFrom(MPU_ADDR, (uint8_t)1); return Wire.read();
 }
 
+// ---- Read accel ----
 AccelData readAccelOnce() {
-  uint8_t buffer[6];
-  readRegisters(REG_DATAX0, buffer, 6);
+  Wire.beginTransmission(MPU_ADDR);
+  Wire.write(0x3B);
+  Wire.endTransmission(false);
+  Wire.requestFrom(MPU_ADDR, (uint8_t)6);
+
+  int16_t rawX = (Wire.read() << 8) | Wire.read();
+  int16_t rawY = (Wire.read() << 8) | Wire.read();
+  int16_t rawZ = (Wire.read() << 8) | Wire.read();
+
   AccelData data;
-  data.x = (int16_t)((buffer[1] << 8) | buffer[0]) * SENSITIVITY;
-  data.y = (int16_t)((buffer[3] << 8) | buffer[2]) * SENSITIVITY;
-  data.z = (int16_t)((buffer[5] << 8) | buffer[4]) * SENSITIVITY;
+  data.x = rawX / SENSITIVITY_2G;
+  data.y = rawY / SENSITIVITY_2G;
+  data.z = rawZ / SENSITIVITY_2G;
   return data;
 }
 
+// ---- Median filter (kills noise spikes) ----
 float medianOf9(float *arr) {
   float temp[9];
   for (int i = 0; i < 9; i++) temp[i] = arr[i];
@@ -76,20 +86,45 @@ AccelData readAccelFiltered() {
   return data;
 }
 
-bool initADXL345() {
-  uint8_t id = readRegister(REG_DEVID);
-  if (id != 0xE5) { Serial.printf("ADXL345 not found! ID: 0x%02X\n", id); return false; }
-  Serial.println("ADXL345 detected!");
-  writeRegister(REG_DATA_FORMAT, 0x08);
-  writeRegister(REG_BW_RATE, 0x08);
-  writeRegister(REG_OFSX, 0x00);
-  writeRegister(REG_OFSY, 0x00);
-  writeRegister(REG_OFSZ, 0x00);
-  writeRegister(REG_POWER_CTL, 0x08);
+// ---- Init MPU sensor ----
+bool initMPU() {
+  uint8_t id = readRegister(0x75);
+  Serial.printf("WHO_AM_I: 0x%02X\n", id);
+
+  // Accept MPU-6050 (0x68), MPU-6500 (0x70), MPU-9250 (0x70)
+  if (id != 0x68 && id != 0x70) {
+    Serial.println("MPU not found!");
+    return false;
+  }
+
+  if (id == 0x70) Serial.println("MPU-6500/9250 detected!");
+  else Serial.println("MPU-6050 detected!");
+
+  // Reset
+  writeRegister(0x6B, 0x80);
   delay(100);
+
+  // Wake up
+  writeRegister(0x6B, 0x00);
+  delay(10);
+
+  // Sample rate 100Hz
+  writeRegister(0x19, 0x09);
+
+  // DLPF 44Hz (less noise)
+  writeRegister(0x1A, 0x03);
+
+  // Gyro +/- 250
+  writeRegister(0x1B, 0x00);
+
+  // Accel +/- 2g
+  writeRegister(0x1C, 0x00);
+
+  Serial.println("MPU configured: +/- 2g, 100Hz");
   return true;
 }
 
+// ---- Calibration ----
 void calibrateSensor() {
   Serial.println("\n================================");
   Serial.println("  CALIBRATION");
@@ -98,120 +133,95 @@ void calibrateSensor() {
   Serial.println("================================");
   delay(3000);
 
-  for (int i = 0; i < 20; i++) { readAccelFiltered(); delay(5); }
+  // Discard first readings
+  for (int i = 0; i < 50; i++) { readAccelOnce(); delay(10); }
 
+  // Average 500 readings
   float sumX = 0, sumY = 0, sumZ = 0;
-  for (int i = 0; i < 200; i++) {
-    AccelData a = readAccelFiltered();
+  for (int i = 0; i < 500; i++) {
+    AccelData a = readAccelOnce();
     sumX += a.x; sumY += a.y; sumZ += a.z;
-    delay(5);
+    delay(4);
   }
 
-  float avgX = sumX / 200.0;
-  float avgY = sumY / 200.0;
-  float avgZ = sumZ / 200.0;
+  refX = sumX / 500.0;
+  refY = sumY / 500.0;
+  refZ = sumZ / 500.0;
 
-  Serial.printf("\n  Before: X=%.4f Y=%.4f Z=%.4f\n", avgX, avgY, avgZ);
-
-  int8_t offX = (int8_t)(-avgX / 0.0156);
-  int8_t offY = (int8_t)(-avgY / 0.0156);
-  int8_t offZ = (int8_t)(-(avgZ - 1.0) / 0.0156);
-
-  writeRegister(REG_OFSX, offX);
-  writeRegister(REG_OFSY, offY);
-  writeRegister(REG_OFSZ, offZ);
-  delay(100);
-
-  AccelData test = readAccelFiltered();
-  Serial.printf("  After:  X=%.4f Y=%.4f Z=%.4f\n", test.x, test.y, test.z);
-  Serial.println("  ✅ Calibration DONE!\n");
+  Serial.printf("\n  Flat reference:\n");
+  Serial.printf("    X: %.4f\n", refX);
+  Serial.printf("    Y: %.4f\n", refY);
+  Serial.printf("    Z: %.4f\n", refZ);
+  Serial.println("\n  ✅ DONE! Tilt sensor now...\n");
 }
 
+// ---- WiFi ----
 void connectWiFi() {
   Serial.printf("Connecting to WiFi: %s", WIFI_SSID);
   WiFi.begin(WIFI_SSID, WIFI_PASS);
   int attempts = 0;
   while (WiFi.status() != WL_CONNECTED && attempts < 30) {
-    delay(500); Serial.print("."); attempts++;
-    digitalWrite(WIFI_LED_PIN, !digitalRead(WIFI_LED_PIN));
+    delay(500);
+    Serial.print(".");
+    attempts++;
   }
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("\nWiFi connected!");
-    Serial.println(WiFi.localIP());
-    digitalWrite(WIFI_LED_PIN, HIGH);
+    Serial.printf("\nConnected! IP: %s\n", WiFi.localIP().toString().c_str());
   } else {
-    Serial.println("\nWiFi failed!");
-    digitalWrite(WIFI_LED_PIN, LOW);
+    Serial.println("\nWiFi failed! Continuing without server...");
   }
 }
 
-bool sendInProgress = false;
-unsigned long sendStartTime = 0;
-float pendingTilt = 0;
-const char* pendingStatus = "safe";
-
+// ---- Send data ----
 void startSend(float tilt, const char* status) {
-  if (sendInProgress) return;
-  pendingTilt = tilt; pendingStatus = status;
-  sendInProgress = true; sendStartTime = millis();
-}
+  if (WiFi.status() != WL_CONNECTED) return;
 
-void updateSend() {
-  if (!sendInProgress) return;
-  if (millis() - sendStartTime > 5000) { sendInProgress = false; return; }
-  if (WiFi.status() != WL_CONNECTED) { sendInProgress = false; return; }
   HTTPClient http;
-  http.setConnectTimeout(3000); http.setTimeout(3000);
   http.begin(SERVER_URL);
-  http.addHeader("Content-Type", "application/json");
-  String payload = "{\"device_id\":\"" + String(DEVICE_ID) + "\",\"tilt\":" + String(pendingTilt, 2) + ",\"status\":\"" + String(pendingStatus) + "\",\"ip\":\"" + WiFi.localIP().toString() + "\"}";
-  int httpCode = http.POST(payload);
-  if (httpCode > 0) Serial.printf("POST -> %d\n", httpCode);
+  http.addHeader("Content-Type", "application/http");
+  http.setTimeout(3000);
+
+  String payload = "{\"device_id\":\"" + String(DEVICE_ID) + "\",\"tilt\":" + String(tilt, 2) + ",\"status\":\"" + String(status) + "\"}";
+
+  int code = http.POST(payload);
+  if (code > 0) Serial.printf("POST -> %d\n", code);
+  else Serial.printf("POST failed: %d\n", code);
+
   http.end();
-  sendInProgress = false;
 }
 
-const char* getTiltStatus(float tilt) {
-  float absTilt = abs(tilt);
-  if (absTilt < DEAD_ZONE) return "safe";
-  if (absTilt >= TILT_RED) return "danger";      // 40+ degrees = RED
-  if (absTilt >= TILT_YELLOW) return "warning";  // 10+ degrees = YELLOW
-  return "safe";
-}
-
+// ---- Setup ----
 void setup() {
   Serial.begin(115200);
   delay(1000);
-  Serial.println("\n=== Landsafe AI - ADXL345 ===\n");
-  Serial.println("  Thresholds:");
-  Serial.printf("  Safe:    < %d°\n", (int)DEAD_ZONE);
-  Serial.printf("  Warning: %d° - %d°\n", (int)TILT_YELLOW, (int)TILT_RED);
-  Serial.printf("  Danger:  > %d° (auto siren!)\n\n", (int)TILT_RED);
+  Serial.println("\n=== Landsafe AI - MPU Tilt Detector ===\n");
 
   pinMode(LED_BUILTIN_PIN, OUTPUT);
-  pinMode(WIFI_LED_PIN, OUTPUT);
-  digitalWrite(LED_BUILTIN_PIN, LOW);
-  digitalWrite(WIFI_LED_PIN, LOW);
   Wire.begin(21, 22);
   Wire.setClock(400000);
 
-  if (!initADXL345()) {
-    Serial.println("ADXL345 init failed!");
-    while (1) { digitalWrite(LED_BUILTIN_PIN, HIGH); delay(200); digitalWrite(LED_BUILTIN_PIN, LOW); delay(200); }
+  if (!initMPU()) {
+    Serial.println("Check wiring and restart!");
+    while (1) { delay(1000); }
   }
 
-  calibrateSensor();
   connectWiFi();
-  Serial.println("Listening for tilt...\n");
+  calibrateSensor();
 }
 
+// ---- Loop ----
 void loop() {
-  updateSend();
   AccelData accel = readAccelFiltered();
 
-  float tiltRad = atan2(sqrt(accel.x * accel.x + accel.y * accel.y), abs(accel.z));
-  float tiltAngle = tiltRad * 180.0 / PI;
-  const char* status = getTiltStatus(tiltAngle);
+  float dx = accel.x - refX;
+  float dy = accel.y - refY;
+
+  float tiltAngle = atan2(sqrt(dx * dx + dy * dy), abs(accel.z)) * 180.0 / PI;
+  if (tiltAngle < DEAD_ZONE) tiltAngle = 0;
+
+  const char* status = "safe";
+  if (tiltAngle >= TILT_RED) status = "danger";
+  else if (tiltAngle >= TILT_YELLOW) status = "warning";
 
   static unsigned long lastPrint = 0;
   if (millis() - lastPrint >= 500) {
@@ -220,13 +230,9 @@ void loop() {
                   tiltAngle, status, accel.x, accel.y, accel.z);
   }
 
-  // LED behavior
   if (strcmp(status, "danger") == 0) {
-    // Red: fast blink
-    digitalWrite(LED_BUILTIN_PIN, HIGH); delay(50);
-    digitalWrite(LED_BUILTIN_PIN, LOW); delay(50);
+    digitalWrite(LED_BUILTIN_PIN, HIGH);
   } else if (strcmp(status, "warning") == 0) {
-    // Yellow: slow blink
     digitalWrite(LED_BUILTIN_PIN, HIGH); delay(200);
     digitalWrite(LED_BUILTIN_PIN, LOW); delay(200);
   } else {
@@ -234,7 +240,10 @@ void loop() {
   }
 
   static unsigned long lastSend = 0;
-  if (millis() - lastSend >= 2000) { lastSend = millis(); startSend(tiltAngle, status); }
+  if (millis() - lastSend >= 2000) {
+    lastSend = millis();
+    startSend(tiltAngle, status);
+  }
 
   delay(100);
 }
