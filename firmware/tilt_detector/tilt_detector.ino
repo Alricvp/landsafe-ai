@@ -178,7 +178,7 @@ void startSend(float tilt, const char* status) {
 
   HTTPClient http;
   http.begin(SERVER_URL);
-  http.addHeader("Content-Type", "application/http");
+  http.addHeader("Content-Type", "application/json");
   http.setTimeout(3000);
 
   String payload = "{\"device_id\":\"" + String(DEVICE_ID) + "\",\"tilt\":" + String(tilt, 2) + ",\"status\":\"" + String(status) + "\"}";
