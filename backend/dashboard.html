@@ -406,7 +406,7 @@ function switchTab(name, el){
 const API=`${location.origin}/api/latest`;
 const HIST=`${location.origin}/api/history`;
 const RISK=`${location.origin}/api/risk`;
-let sirenOn=false,vibOn=false,audioCtx=null,sirenOsc=null,lastStatus='safe',lastTS='',vibInterval=null;
+let sirenOn=false,vibOn=false,audioCtx=null,sirenOsc=null,lastStatus='safe',lastTS='',vibInterval=null,lastDataTime=0;
 const $=id=>document.getElementById(id);
 
 function initAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();}
@@ -458,7 +458,8 @@ function update(data,risk){
   $('log-wrap').insertBefore(entry,$('log-wrap').firstChild);while($('log-wrap').children.length>50)$('log-wrap').removeChild($('log-wrap').lastChild);
   lastStatus=status;
 }
-async function poll(){try{const r=await fetch(API);const j=await r.json();if(j.data&&j.data.timestamp!==lastTS){lastTS=j.data.timestamp;update(j.data,j.risk);$('conn-dot').className='dot on pulse';$('conn-label').textContent='Live';}}catch(e){$('conn-dot').className='dot pulse';$('conn-label').textContent='Offline';}}
+async function poll(){try{const r=await fetch(API);const j=await r.json();if(j.data&&j.data.timestamp!==lastTS){lastTS=j.data.timestamp;lastDataTime=Date.now();update(j.data,j.risk);$('conn-dot').className='dot on pulse';$('conn-label').textContent='Live';}else if(Date.now()-lastDataTime>10000&&lastDataTime>0){goOffline();}}catch(e){goOffline();}}
+function goOffline(){$('conn-dot').className='dot pulse';$('conn-label').textContent='Offline';$('badge').textContent='OFFLINE';$('badge').className='badge-pill';$('dev-status').textContent='OFFLINE';$('dev-status').style.color='var(--text-muted)';$('tilt-dev').textContent='Sensor disconnected — waiting for data…';$('overlay').className='overlay';$('alert-bar').className='alert-bar';stopSiren();stopContinuousVibrate();}
 async function loadHist(){try{const r=await fetch(HIST);const j=await r.json();if(j.data&&j.data.length>0){const riskR=await fetch(RISK);const riskJ=await riskR.json();update(j.data[j.data.length-1],riskJ.data);j.data.slice(-20).forEach(d=>{const t=new Date(d.timestamp).toLocaleTimeString();const e=document.createElement('div');e.className='log-entry';const m=d.moisture||0;e.innerHTML=`<span class="log-t">${t}</span><span class="log-v ${d.status}">${d.tilt.toFixed(2)}° M:${m.toFixed(0)}% ${d.status==='danger'?'🔴':d.status==='warning'?'🟡':'🟢'}</span>`;$('log-wrap').appendChild(e);});}}catch(e){}}
 loadHist();setInterval(poll,1000);
 
