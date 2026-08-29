@@ -33,7 +33,7 @@ const char* DEVICE_ID = "sensor-001";
 
 // ---- Thresholds ----
 #define TILT_YELLOW   10.0
-#define TILT_RED      40.0
+#define TILT_RED      60.0
 #define DEAD_ZONE     2.0
 #define MOISTURE_WARN  60.0   // % moisture = warning
 #define MOISTURE_DANGER 80.0  // % moisture = danger

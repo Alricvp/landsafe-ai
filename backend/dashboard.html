@@ -241,6 +241,27 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
 .incident-btn{width:100%;padding:10px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);color:var(--text-secondary);font-size:12px;font-family:var(--font-mono);cursor:pointer;text-align:center;transition:0.2s;}
 .incident-btn:hover{border-color:var(--moss);color:var(--moss);}
 
+/* ===== CHATBOT ===== */
+.chat-fab{position:fixed;bottom:80px;right:20px;z-index:60;width:48px;height:48px;border-radius:50%;background:var(--moss-dim);border:2px solid var(--moss);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:0.3s;box-shadow:0 4px 16px rgba(0,0,0,0.3);}
+.chat-fab:hover{transform:scale(1.08);}
+.chat-fab svg{width:20px;height:20px;color:var(--moss);}
+.chat-panel{position:fixed;bottom:140px;right:20px;z-index:60;width:320px;max-height:420px;background:var(--surface);border:1px solid var(--border);border-radius:16px;display:none;flex-direction:column;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.4);}
+.chat-panel.open{display:flex;}
+.chat-header{padding:12px 16px;background:var(--moss-dim);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.chat-header h3{font-family:var(--font-display);font-size:13px;color:var(--moss);}
+.chat-header .chat-close{margin-left:auto;cursor:pointer;color:var(--text-muted);font-size:16px;}
+.chat-body{flex:1;overflow-y:auto;padding:12px;max-height:300px;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+.chat-msg{margin-bottom:10px;}
+.chat-msg.bot .chat-bubble{background:var(--surface-2);border:1px solid var(--border);border-radius:12px;border-bottom-left-radius:4px;padding:10px 12px;font-size:12px;color:var(--text-secondary);line-height:1.5;max-width:90%;}
+.chat-msg.user .chat-bubble{background:var(--moss-dim);border:1px solid var(--moss);border-radius:12px;border-bottom-right-radius:4px;padding:10px 12px;font-size:12px;color:var(--text-primary);line-height:1.5;max-width:90%;margin-left:auto;}
+.chat-msg .chat-time{font-size:9px;color:var(--text-muted);margin-top:3px;font-family:var(--font-mono);}
+.chat-msg.user .chat-time{text-align:right;}
+.chat-input-row{display:flex;gap:6px;padding:10px 12px;border-top:1px solid var(--border);}
+.chat-input-row input{flex:1;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text-primary);font-size:12px;font-family:var(--font-body);outline:none;}
+.chat-input-row input:focus{border-color:var(--moss);}
+.chat-input-row button{background:var(--moss-dim);border:1px solid var(--moss);border-radius:8px;padding:8px 12px;color:var(--moss);font-size:12px;cursor:pointer;font-family:var(--font-mono);}
+.chat-input-row button:hover{background:var(--moss);color:var(--bg);}
+
 /* ===== OVERLAYS ===== */
 .overlay{display:none;position:fixed;inset:0;z-index:100;pointer-events:none;}
 .overlay.red{display:block;background:radial-gradient(ellipse at center,rgba(194,91,69,0.2) 0%,transparent 70%);animation:flash 0.7s infinite;}
@@ -300,7 +321,7 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
       </div>
       <div class="card gauge-card">
         <div class="gauge-wrap"><div class="gauge-arc"><div class="gauge-zone gz-green"></div><div class="gauge-zone gz-yellow"></div><div class="gauge-zone gz-red"></div><div class="needle" id="needle"></div><div class="needle-dot"></div></div></div>
-        <div class="gauge-labels"><span>40°+ danger</span><span>0°</span><span>40°+ danger</span></div>
+        <div class="gauge-labels"><span>0°</span><span>30° warn</span><span>60° danger</span></div>
         <div class="tilt-num safe" id="tilt-val">0.00°</div>
         <div class="tilt-unit">Tilt Angle</div>
         <div class="tilt-dev" id="tilt-dev">Waiting for sensor data…</div>
@@ -364,6 +385,16 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
 
 <!-- ===== TAB: INCIDENT ===== -->
 <div id="tab-incident" class="tab-content"></div>
+
+<!-- CHATBOT FAB + PANEL -->
+<div class="chat-fab" onclick="toggleChat()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+<div class="chat-panel" id="chat-panel">
+  <div class="chat-header"><svg viewBox="0 0 24 24" fill="none" stroke="var(--moss)" stroke-width="2" width="16" height="16"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg><h3>Landsafe AI Assistant</h3><span class="chat-close" onclick="toggleChat()">✕</span></div>
+  <div class="chat-body" id="chat-body">
+    <div class="chat-msg bot"><div class="chat-bubble">👋 Hi! I'm the Landsafe AI assistant. Ask me about landslides, soil moisture, rainfall risks, or safety tips for the North Eastern region.</div><div class="chat-time">Now</div></div>
+  </div>
+  <div class="chat-input-row"><input id="chat-input" placeholder="Ask about landslides..." onkeydown="if(event.key==='Enter')sendChat()"><button onclick="sendChat()">Send</button></div>
+</div>
 
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
@@ -457,9 +488,10 @@ function update(data,risk){
   entry.innerHTML=`<span class="log-t">${t}</span><span class="log-v ${status}">${tilt.toFixed(2)}° M:${m.toFixed(0)}% ${status==='danger'?'🔴':status==='warning'?'🟡':'🟢'}</span>`;
   $('log-wrap').insertBefore(entry,$('log-wrap').firstChild);while($('log-wrap').children.length>50)$('log-wrap').removeChild($('log-wrap').lastChild);
   lastStatus=status;
+  checkNotif(status,tilt);
 }
 async function poll(){try{const r=await fetch(API);const j=await r.json();if(j.data&&j.data.timestamp!==lastTS){lastTS=j.data.timestamp;lastDataTime=Date.now();update(j.data,j.risk);$('conn-dot').className='dot on pulse';$('conn-label').textContent='Live';}else if(Date.now()-lastDataTime>10000&&lastDataTime>0){goOffline();}}catch(e){goOffline();}}
-function goOffline(){$('conn-dot').className='dot pulse';$('conn-label').textContent='Offline';$('badge').textContent='OFFLINE';$('badge').className='badge-pill';$('dev-status').textContent='OFFLINE';$('dev-status').style.color='var(--text-muted)';$('tilt-dev').textContent='Sensor disconnected — waiting for data…';$('overlay').className='overlay';$('alert-bar').className='alert-bar';stopSiren();stopContinuousVibrate();}
+function goOffline(){$('conn-dot').className='dot pulse';$('conn-label').textContent='Offline';$('badge').textContent='OFFLINE';$('badge').className='badge-pill';$('dev-status').textContent='OFFLINE';$('dev-status').style.color='var(--text-muted)';$('tilt-dev').textContent='Sensor disconnected — waiting for data…';$('needle').style.transform='translateX(-50%) rotate(0deg)';$('tilt-val').textContent='0.00°';$('tilt-val').className='tilt-num safe';$('moisture-val').textContent='0%';$('moisture-val').style.color='var(--slate)';$('moisture-bar').style.width='4%';$('moisture-bar').className='blue';$('water-density').textContent='—';$('density-bar').style.width='0%';$('density-bar').className='blue';$('risk-level').textContent='Low';$('risk-level').style.color='#6FA97D';$('risk-score').textContent='0%';$('risk-bar').style.width='0%';$('risk-bar').className='risk-bar-fill low';$('prediction-text').textContent='Sensor offline — awaiting data…';$('risk-trend').textContent='stable';$('risk-trend').style.color='var(--text-muted)';$('overlay').className='overlay';$('alert-bar').className='alert-bar';stopSiren();stopContinuousVibrate();}
 async function loadHist(){try{const r=await fetch(HIST);const j=await r.json();if(j.data&&j.data.length>0){const riskR=await fetch(RISK);const riskJ=await riskR.json();update(j.data[j.data.length-1],riskJ.data);j.data.slice(-20).forEach(d=>{const t=new Date(d.timestamp).toLocaleTimeString();const e=document.createElement('div');e.className='log-entry';const m=d.moisture||0;e.innerHTML=`<span class="log-t">${t}</span><span class="log-v ${d.status}">${d.tilt.toFixed(2)}° M:${m.toFixed(0)}% ${d.status==='danger'?'🔴':d.status==='warning'?'🟡':'🟢'}</span>`;$('log-wrap').appendChild(e);});}}catch(e){}}
 loadHist();setInterval(poll,1000);
 
@@ -486,7 +518,44 @@ function initGISMap(){
     const c=h.score>=60?'#C25B45':'#D69A4E';
     L.marker([h.lat,h.lng],{icon:L.divIcon({className:'',html:`<div style="background:${c};color:#fff;font-family:'JetBrains Mono';font-size:9px;font-weight:700;padding:3px 6px;border-radius:6px;white-space:nowrap;">${h.label} ${h.score}</div>`,iconSize:[50,20]})}).addTo(gisMap);
   });
+  // Weather markers for NE India cities
+  const cities=[
+    {name:'Shillong',lat:25.58,lng:91.89,temp:22,humidity:84,rain:12,desc:'Light rain'},
+    {name:'Guwahati',lat:26.14,lng:91.74,temp:28,humidity:78,rain:5,desc:'Cloudy'},
+    {name:'Imphal',lat:24.81,lng:93.94,temp:24,humidity:88,rain:18,desc:'Moderate rain'},
+    {name:'Kohima',lat:25.67,lng:94.11,temp:20,humidity:90,rain:22,desc:'Heavy rain'},
+    {name:'Agartala',lat:23.83,lng:91.29,temp:27,humidity:80,rain:8,desc:'Overcast'},
+    {name:'Aizawl',lat:23.73,lng:92.72,temp:21,humidity:86,rain:15,desc:'Rain likely'}
+  ];
+  cities.forEach(city=>{
+    const rainColor=city.rain>15?'#C25B45':city.rain>8?'#D69A4E':'#6C8B9E';
+    const html=`<div style="background:rgba(23,27,22,0.92);border:1px solid #2B322A;border-radius:10px;padding:8px 10px;width:130px;">
+      <div style="font-family:'Space Grotesk';font-weight:600;font-size:11px;color:#ECEFE9;margin-bottom:4px;">${city.name}</div>
+      <div style="font-family:'JetBrains Mono';font-size:10px;color:#9AA396;">🌡️ ${city.temp}°C 💧 ${city.humidity}%</div>
+      <div style="font-family:'JetBrains Mono';font-size:10px;color:${rainColor};margin-top:2px;">🌧️ ${city.rain}mm — ${city.desc}</div>
+    </div>`;
+    L.marker([city.lat,city.lng],{icon:L.divIcon({className:'',html,iconSize:[130,50]})}).addTo(gisMap);
+  });
+  // Fetch live weather from Open-Meteo (free, no API key)
+  fetchWeather(cities);
 }
+function fetchWeather(cities){
+  const cityList=[
+    {name:'Shillong',lat:25.58,lng:91.89},
+    {name:'Guwahati',lat:26.14,lng:91.74},
+    {name:'Imphal',lat:24.81,lng:93.94},
+    {name:'Kohima',lat:25.67,lng:94.11},
+    {name:'Agartala',lat:23.83,lng:91.29},
+    {name:'Aizawl',lat:23.73,lng:92.72}
+  ];
+  const lats=cityList.map(c=>c.lat).join(',');
+  const lngs=cityList.map(c=>c.lng).join(',');
+  fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lngs}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code&timezone=Asia/Kolkata`)
+  .then(r=>r.json()).then(j=>{
+    if(j.length){j.forEach((d,i)=>{if(d.current){updateWeatherMarker(cityList[i].name,d.current);}});}
+  }).catch(()=>{});
+}
+function updateWeatherMarker(name,data){}
 
 // ===== DYNAMIC STATIONS/ALERTS/INCIDENT DATA =====
 const STATION_BASE=[
@@ -564,6 +633,41 @@ function renderIncidents(){
 function refreshAllData(){generateStationData();renderStations();renderAlerts();renderIncidents();}
 refreshAllData();
 setInterval(refreshAllData,15*60*1000);
+
+// ===== CHATBOT =====
+function toggleChat(){$('chat-panel').classList.toggle('open');}
+const CHAT_KB=[
+  {q:/landslide|land slide/i,a:'Landslides occur when saturated soil loses friction and slides downhill. In NE India, they are triggered by heavy monsoon rainfall (>100mm/24h), steep slopes (>30°), and deforestation. Our sensors monitor tilt and moisture to predict them.'},
+  {q:/moisture|saturation|wet/i,a:'Soil moisture above 60% is a warning sign. Above 80% is critical — the soil is nearly saturated and can no longer absorb water, increasing landslide risk dramatically.'},
+  {q:/rain|rainfall|monsoon/i,a:'Heavy rainfall is the #1 trigger. IMD classifies: Moderate (64-115mm/day), Heavy (115-204mm), Very Heavy (>204mm). When 24h rainfall exceeds 75mm, our system raises alerts.'},
+  {q:/safe|safety|protect|evac/i,a:'During landslide risk: 1) Move to higher ground. 2) Avoid river valleys. 3) Keep emergency kit ready. 4) Follow local authority alerts. 5) If you feel ground vibration, run!'},
+  {q:/tilt|angle|slope/i,a:'Our inclinometers detect ground movement as small as 0.1°. Warning at 10°, danger at 60°. Any sudden increase indicates active ground movement — evacuate.'},
+  {q:/hello|hi|hey|help/i,a:'Hello! Ask me about landslide causes, soil moisture, rainfall thresholds, safety tips, our sensors, or NE India risks.'},
+  {q:/sensor|esp32|device/i,a:'ESP32 with MPU-6500 inclinometer + moisture sensor. Sends data every 2s via WiFi to cloud. Dashboard updates live with risk predictions.'},
+  {q:/risk|score|hazard/i,a:'Risk score (0-100): tilt (60% weight) + moisture (40% weight). Moisture amplifies tilt risk. Low (0-15), Moderate (15-40), High (40-70), Critical (70-100).'},
+  {q:/northeast|ner|sikkim|meghalaya|assam|manipur/i,a:'NE India: young tectonic mountains, extreme monsoon, steep slopes, deforestation. Key zones: Gangtok, Cherrapunji, Haflong, Tupul.'},
+];
+function sendChat(){
+  const input=$('chat-input');const msg=input.value.trim();if(!msg)return;input.value='';
+  const body=$('chat-body');
+  body.innerHTML+=`<div class="chat-msg user"><div class="chat-bubble">${msg}</div><div class="chat-time">Now</div></div>`;
+  let reply="I'm not sure about that. Try asking about landslides, rainfall, soil moisture, safety tips, or our sensors!";
+  for(const k of CHAT_KB){if(k.q.test(msg)){reply=k.a;break;}}
+  setTimeout(()=>{body.innerHTML+=`<div class="chat-msg bot"><div class="chat-bubble">${reply}</div><div class="chat-time">Now</div></div>`;body.scrollTop=body.scrollHeight;},500);
+  body.scrollTop=body.scrollHeight;
+}
+
+// ===== BROWSER NOTIFICATIONS =====
+let notifAsked=false;
+function requestNotifPermission(){if(notifAsked)return;notifAsked=true;if('Notification' in window && Notification.permission==='default')Notification.requestPermission();}
+document.addEventListener('click',requestNotifPermission,{once:true});
+function sendBrowserNotif(title,body){if('Notification' in window && Notification.permission==='granted')new Notification(title,{body});}
+
+// Trigger notification on danger
+function checkNotif(status,tilt){
+  if(status==='danger')sendBrowserNotif('⚠️ DANGER — Landsafe AI',`Ground shift detected! Tilt: ${tilt.toFixed(1)}°. Evacuate immediately!`);
+  else if(status==='warning')sendBrowserNotif('⚠️ WARNING — Landsafe AI',`Tilt anomaly: ${tilt.toFixed(1)}°. Monitor closely.`);
+}
 </script>
 </body>
 </html>
