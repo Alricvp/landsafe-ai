@@ -488,65 +488,82 @@ function initGISMap(){
   });
 }
 
-// ===== STATIONS TAB =====
-const stations=[
-  {name:'Gangtok — 32nd Mile NH10 Corridor',loc:'East Sikkim, Sikkim',id:'ESP32-NER-001',score:72,level:'HIGH',rain:78.4,moisture:73.2,tilt:1.12,slope:42.5},
-  {name:'Haflong — Jatinga Valley Escarpment',loc:'Dima Hasao, Assam',id:'ESP32-NER-002',score:48,level:'MODERATE',rain:38.0,moisture:58.4,tilt:0.28,slope:38.0},
-  {name:'Cherrapunji — Shella Gorge Rim',loc:'East Khasi Hills, Meghalaya',id:'ESP32-NER-003',score:68,level:'HIGH',rain:112.0,moisture:82.0,tilt:0.72,slope:48.0},
-  {name:'Tupul — Ijei River Rail Corridor',loc:'Noney, Manipur',id:'ESP32-NER-007',score:58,level:'MODERATE',rain:52.0,moisture:65.0,tilt:0.42,slope:46.8}
+// ===== DYNAMIC STATIONS/ALERTS/INCIDENT DATA =====
+const STATION_BASE=[
+  {name:'Gangtok — 32nd Mile NH10 Corridor',loc:'East Sikkim, Sikkim',id:'ESP32-NER-001',baseScore:72,slope:42.5,rainBase:78,moistureBase:73,tiltBase:1.1},
+  {name:'Haflong — Jatinga Valley Escarpment',loc:'Dima Hasao, Assam',id:'ESP32-NER-002',baseScore:48,slope:38.0,rainBase:38,moistureBase:58,tiltBase:0.3},
+  {name:'Cherrapunji — Shella Gorge Rim',loc:'East Khasi Hills, Meghalaya',id:'ESP32-NER-003',baseScore:68,slope:48.0,rainBase:112,moistureBase:82,tiltBase:0.7},
+  {name:'Tupul — Ijei River Rail Corridor',loc:'Noney, Manipur',id:'ESP32-NER-007',baseScore:58,slope:46.8,rainBase:52,moistureBase:65,tiltBase:0.4}
 ];
+let stationData=[];
+let alertHistory=[];
+
+function rand(min,max){return (Math.random()*(max-min)+min);}
+function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
+
+function generateStationData(){
+  stationData=STATION_BASE.map(s=>{
+    const rain=clamp(Math.round((s.rainBase+rand(-15,15))*10)/10,5,180);
+    const moisture=clamp(Math.round((s.moistureBase+rand(-10,10))*10)/10,5,98);
+    const tilt=clamp(Math.round((s.tiltBase+rand(-0.5,0.5))*100)/100,0,5);
+    const score=clamp(Math.round(s.baseScore+rand(-12,12)),10,98);
+    const level=score>=65?'HIGH':score>=40?'MODERATE':'LOW';
+    return{...s,rain,moisture,tilt,score,level};
+  });
+}
+function generateAlerts(){
+  const actives=[];
+  stationData.filter(s=>s.score>=50).forEach(s=>{
+    const hrs=Math.floor(rand(1,6));
+    actives.push({level:s.score>=65?'danger':'warn',title:s.score>=65?'🔴 HIGH HAZARD':'🟡 MODERATE',name:s.name,body:`Soil saturation at ${s.moisture.toFixed(1)}% with inclinometer creep (+${s.tilt.toFixed(2)}°). ${s.rain.toFixed(1)}mm rainfall in 24h. Risk score: ${s.score}.`,time:`${hrs} hour${hrs>1?'s':''} ago`});
+  });
+  if(actives.length===0){actives.push({level:'info',title:'ℹ️ INFO',name:'All Stations',body:'All monitored corridors within safe parameters. No active hazard alerts.',time:'Just now'});}
+  const hist=[];
+  stationData.filter(s=>s.score>=35).slice(0,2).forEach(s=>{
+    hist.push({level:'warn',title:'🟡 PAST ALERT — '+s.name,body:`Elevated moisture (${s.moisture.toFixed(1)}%) detected. Tilt at ${s.tilt.toFixed(2)}°. Monitoring continued.`,time:'1 day ago'});
+  });
+  hist.push({level:'info',title:'ℹ️ WEATHER ADVISORY',body:'India Meteorological Department forecast: Heavy rainfall expected across Meghalaya and Assam in next 48 hours.',time:'2 days ago'});
+  return{actives,hist};
+}
+function generateIncidents(){
+  return stationData.filter(s=>s.score>=55).map(s=>({name:s.name,loc:s.loc,score:s.score,level:s.level,slope:s.slope,rain:s.rain,moisture:s.moisture,tilt:s.tilt}));
+}
+
 function renderStations(){
   const el=$('tab-stations');
-  el.innerHTML='<div class="card-title" style="margin:16px 16px 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21l4-13 4 13"/><path d="M2 21h20"/></svg>Monitored Stations (NER)<span class="line"></span></div>';
-  stations.forEach(s=>{
+  el.innerHTML='<div class="card-title" style="margin:16px 16px 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21l4-13 4 13"/><path d="M2 21h20"/></svg>Monitored Stations (NER) <span style="color:var(--moss);font-size:9px;margin-left:6px;">● Live</span><span class="line"></span></div>';
+  stationData.forEach(s=>{
     const bc=s.score>=65?'high':s.score>=45?'moderate':'low';
     el.innerHTML+=`<div class="station-card"><div class="station-head"><div class="station-name">${s.name}</div><div class="station-badge ${bc}">${s.score} • ${s.level}</div></div><div class="station-meta">${s.loc} • ${s.id} • Online</div><div class="station-grid"><div class="sg-item"><div class="sg-val">${s.rain}</div><div class="sg-label">Rain mm</div></div><div class="sg-item"><div class="sg-val">${s.moisture}%</div><div class="sg-label">Moisture</div></div><div class="sg-item"><div class="sg-val">${s.tilt}°</div><div class="sg-label">Tilt Δθ</div></div><div class="sg-item"><div class="sg-val">${s.slope}°</div><div class="sg-label">Slope</div></div></div></div>`;
   });
 }
-renderStations();
 
-// ===== ALERTS TAB =====
 function renderAlerts(){
+  const a=generateAlerts();
   const el=$('tab-alerts');
-  el.innerHTML=`
-    <div class="segment-tabs"><div class="seg-tab active" onclick="showAlertTab('active',this)">Active Alerts (2)</div><div class="seg-tab" onclick="showAlertTab('history',this)">Historical Logs (2)</div></div>
-    <div id="alerts-active">
-      <div class="alert-card"><div class="alert-title">🔴 HIGH HAZARD — Gangtok 32nd Mile NH10</div><div class="alert-body">Soil saturation at 73.2% with active inclinometer creep (+1.12°). 78.4mm rainfall in 24h. Risk increased from 54 to 72.</div><div class="alert-time">2 hours ago</div></div>
-      <div class="alert-card"><div class="alert-title">🔴 HIGH HAZARD — Cherrapunji Shella Gorge Rim</div><div class="alert-body">Extreme pluvial runoff (112mm/24h) triggering high pore saturation on 48° karst cliff face. Monitor closely.</div><div class="alert-time">4 hours ago</div></div>
-    </div>
-    <div id="alerts-history" style="display:none;">
-      <div class="alert-card warn"><div class="alert-title">🟡 MODERATE — Haflong Jatinga Valley</div><div class="alert-body">Elevated moisture (58.4%) detected. Tilt stable at 0.28°. No immediate threat.</div><div class="alert-time">1 day ago</div></div>
-      <div class="alert-card info"><div class="alert-title">ℹ️ INFO — Tupul Rail Corridor</div><div class="alert-body">Weather alert issued for heavy rainfall in Noney district. Monitoring intensified.</div><div class="alert-time">2 days ago</div></div>
-    </div>`;
+  el.innerHTML=`<div class="segment-tabs"><div class="seg-tab active" onclick="showAlertTab('active',this)">Active Alerts (${a.actives.length})</div><div class="seg-tab" onclick="showAlertTab('history',this)">Historical Logs (${a.hist.length})</div></div><div id="alerts-active">${a.actives.map(x=>`<div class="alert-card ${x.level}"><div class="alert-title">${x.title} — ${x.name}</div><div class="alert-body">${x.body}</div><div class="alert-time">${x.time}</div></div>`).join('')}</div><div id="alerts-history" style="display:none;">${a.hist.map(x=>`<div class="alert-card ${x.level}"><div class="alert-title">${x.title}</div><div class="alert-body">${x.body}</div><div class="alert-time">${x.time}</div></div>`).join('')}</div>`;
 }
 function showAlertTab(tab,el){
   el.parentElement.querySelectorAll('.seg-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
   $('alerts-active').style.display=tab==='active'?'block':'none';
   $('alerts-history').style.display=tab==='history'?'block':'none';
 }
-renderAlerts();
 
-// ===== INCIDENT TAB =====
 function renderIncidents(){
+  const inc=generateIncidents();
   const el=$('tab-incident');
   el.innerHTML='<div class="card-title" style="margin:16px 16px 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Active Incidents<span class="line"></span></div>';
-  el.innerHTML+=`
-    <div class="incident-card">
-      <div class="incident-head"><div class="incident-name">Gangtok — 32nd Mile NH10 Corridor</div><div class="station-badge high">72 / 100 • HIGH</div></div>
-      <div class="incident-loc">East Sikkim, Sikkim • 42.5° Slope</div>
-      <div class="incident-summary">High 24h precipitation (78.4 mm) and soil saturation at 73.2% with active inclinometer creep (+1.12°).</div>
-      <div class="incident-telemetry"><div class="it-item"><div class="it-val">78.4mm</div><div class="it-label">Rainfall</div></div><div class="it-item"><div class="it-val">73.2%</div><div class="it-label">Moisture</div></div><div class="it-item"><div class="it-val">1.12°</div><div class="it-label">Tilt Δθ</div></div></div>
-      <div class="incident-btn" onclick="switchTab('stations',document.querySelectorAll('.nav-item')[2])">View Telemetry Diagnostics →</div>
-    </div>
-    <div class="incident-card">
-      <div class="incident-head"><div class="incident-name">Cherrapunji — Shella Gorge Rim</div><div class="station-badge high">68 / 100 • HIGH</div></div>
-      <div class="incident-loc">East Khasi Hills, Meghalaya • 48.0° Slope</div>
-      <div class="incident-summary">Extreme pluvial runoff (112mm / 24h) triggering high pore saturation on 48° karst cliff face.</div>
-      <div class="incident-telemetry"><div class="it-item"><div class="it-val">112.0mm</div><div class="it-label">Rainfall</div></div><div class="it-item"><div class="it-val">82.0%</div><div class="it-label">Moisture</div></div><div class="it-item"><div class="it-val">0.72°</div><div class="it-label">Tilt Δθ</div></div></div>
-      <div class="incident-btn" onclick="switchTab('stations',document.querySelectorAll('.nav-item')[2])">View Telemetry Diagnostics →</div>
-    </div>`;
+  inc.forEach(s=>{
+    const bc=s.score>=65?'high':'moderate';
+    el.innerHTML+=`<div class="incident-card"><div class="incident-head"><div class="incident-name">${s.name}</div><div class="station-badge ${bc}">${s.score} / 100 • ${s.level}</div></div><div class="incident-loc">${s.loc} • ${s.slope}° Slope</div><div class="incident-summary">${s.score>=65?'High':'Elevated'} 24h precipitation (${s.rain.toFixed(1)} mm) and soil saturation at ${s.moisture.toFixed(1)}% with inclinometer reading +${s.tilt.toFixed(2)}°.</div><div class="incident-telemetry"><div class="it-item"><div class="it-val">${s.rain.toFixed(1)}mm</div><div class="it-label">Rainfall</div></div><div class="it-item"><div class="it-val">${s.moisture.toFixed(1)}%</div><div class="it-label">Moisture</div></div><div class="it-item"><div class="it-val">${s.tilt.toFixed(2)}°</div><div class="it-label">Tilt Δθ</div></div></div><div class="incident-btn" onclick="switchTab('stations',document.querySelectorAll('.nav-item')[2])">View Telemetry Diagnostics →</div></div>`;
+  });
+  if(inc.length===0){el.innerHTML+='<div style="text-align:center;padding:40px;color:var(--text-muted);font-family:var(--font-mono);font-size:12px;">No active incidents — all corridors stable.</div>';}
 }
-renderIncidents();
+
+// Generate initial data + refresh every 15 minutes
+function refreshAllData(){generateStationData();renderStations();renderAlerts();renderIncidents();}
+refreshAllData();
+setInterval(refreshAllData,15*60*1000);
 </script>
 </body>
 </html>
