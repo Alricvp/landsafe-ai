@@ -488,7 +488,7 @@ function update(data,risk){
   entry.innerHTML=`<span class="log-t">${t}</span><span class="log-v ${status}">${tilt.toFixed(2)}° M:${m.toFixed(0)}% ${status==='danger'?'🔴':status==='warning'?'🟡':'🟢'}</span>`;
   $('log-wrap').insertBefore(entry,$('log-wrap').firstChild);while($('log-wrap').children.length>50)$('log-wrap').removeChild($('log-wrap').lastChild);
   lastStatus=status;
-  checkNotif(status,tilt);
+  checkNotif(status,tilt,lastStatus);
 }
 async function poll(){try{const r=await fetch(API);const j=await r.json();if(j.data&&j.data.timestamp!==lastTS){lastTS=j.data.timestamp;lastDataTime=Date.now();update(j.data,j.risk);$('conn-dot').className='dot on pulse';$('conn-label').textContent='Live';}else if(Date.now()-lastDataTime>10000&&lastDataTime>0){goOffline();}}catch(e){goOffline();}}
 function goOffline(){$('conn-dot').className='dot pulse';$('conn-label').textContent='Offline';$('badge').textContent='OFFLINE';$('badge').className='badge-pill';$('dev-status').textContent='OFFLINE';$('dev-status').style.color='var(--text-muted)';$('tilt-dev').textContent='Sensor disconnected — waiting for data…';$('needle').style.transform='translateX(-50%) rotate(0deg)';$('tilt-val').textContent='0.00°';$('tilt-val').className='tilt-num safe';$('moisture-val').textContent='0%';$('moisture-val').style.color='var(--slate)';$('moisture-bar').style.width='4%';$('moisture-bar').className='blue';$('water-density').textContent='—';$('density-bar').style.width='0%';$('density-bar').className='blue';$('risk-level').textContent='Low';$('risk-level').style.color='#6FA97D';$('risk-score').textContent='0%';$('risk-bar').style.width='0%';$('risk-bar').className='risk-bar-fill low';$('prediction-text').textContent='Sensor offline — awaiting data…';$('risk-trend').textContent='stable';$('risk-trend').style.color='var(--text-muted)';$('overlay').className='overlay';$('alert-bar').className='alert-bar';stopSiren();stopContinuousVibrate();}
@@ -661,12 +661,16 @@ function sendChat(){
 let notifAsked=false;
 function requestNotifPermission(){if(notifAsked)return;notifAsked=true;if('Notification' in window && Notification.permission==='default')Notification.requestPermission();}
 document.addEventListener('click',requestNotifPermission,{once:true});
-function sendBrowserNotif(title,body){if('Notification' in window && Notification.permission==='granted')new Notification(title,{body});}
+document.addEventListener('touchstart',requestNotifPermission,{once:true});
+function sendBrowserNotif(title,body){try{if('Notification' in window && Notification.permission==='granted')new Notification(title,{body});}catch(e){}}
 
-// Trigger notification on danger
-function checkNotif(status,tilt){
-  if(status==='danger')sendBrowserNotif('⚠️ DANGER — Landsafe AI',`Ground shift detected! Tilt: ${tilt.toFixed(1)}°. Evacuate immediately!`);
-  else if(status==='warning')sendBrowserNotif('⚠️ WARNING — Landsafe AI',`Tilt anomaly: ${tilt.toFixed(1)}°. Monitor closely.`);
+// Trigger notification only on STATUS CHANGE (not every poll)
+function checkNotif(status,tilt,prevStatus){
+  if(status===prevStatus) return; // Only notify on change
+  try {
+    if(status==='danger') sendBrowserNotif('⚠️ DANGER — Landsafe AI','Ground shift detected! Tilt: '+tilt.toFixed(1)+'°. Evacuate immediately!');
+    else if(status==='warning') sendBrowserNotif('⚠️ WARNING — Landsafe AI','Tilt anomaly: '+tilt.toFixed(1)+'°. Monitor closely.');
+  } catch(e){}
 }
 </script>
 </body>
