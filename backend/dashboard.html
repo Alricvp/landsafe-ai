@@ -10,283 +10,273 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg: #10130F;
-    --surface: #171B16;
-    --surface-2: #1E231D;
-    --border: #2B322A;
-    --border-strong: #3A4238;
-    --text-primary: #ECEFE9;
-    --text-secondary: #9AA396;
-    --text-muted: #656E61;
-    --moss: #6FA97D;
-    --moss-dim: #1E2B21;
-    --ochre: #D69A4E;
-    --ochre-dim: #2E2519;
-    --rust: #C25B45;
-    --rust-dim: #2E1D18;
-    --slate: #6C8B9E;
-    --font-display: 'Space Grotesk', sans-serif;
-    --font-body: 'Inter', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-  }
-  *{box-sizing:border-box; margin:0; padding:0;}
-  body{
-    background: var(--bg);
-    color: var(--text-primary);
-    font-family: var(--font-body);
-    -webkit-font-smoothing: antialiased;
-    min-height: 100vh;
-  }
+:root{
+  --bg:#10130F; --surface:#171B16; --surface-2:#1E231D;
+  --border:#2B322A; --border-strong:#3A4238;
+  --text-primary:#ECEFE9; --text-secondary:#9AA396; --text-muted:#656E61;
+  --moss:#6FA97D; --moss-dim:#1E2B21;
+  --ochre:#D69A4E; --ochre-dim:#2E2519;
+  --rust:#C25B45; --rust-dim:#2E1D18;
+  --slate:#6C8B9E;
+  --font-display:'Space Grotesk',sans-serif;
+  --font-body:'Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body);-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden;}
 
-  /* ---- Alert Overlays ---- */
-  .overlay { display: none; position: fixed; inset: 0; z-index: 100; pointer-events: none; }
-  .overlay.red { display: block; background: radial-gradient(ellipse at center, rgba(194,91,69,0.2) 0%, transparent 70%); animation: flash 0.7s infinite; }
-  .overlay.yellow { display: block; background: radial-gradient(ellipse at center, rgba(214,154,78,0.12) 0%, transparent 70%); animation: flash 1.5s infinite; }
-  @keyframes flash { 0%,100%{opacity:0.2} 50%{opacity:1} }
+/* ===== SPLASH ===== */
+#splash{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:opacity 0.6s ease;
+}
+#splash.hide{opacity:0;pointer-events:none;}
+.splash-logo{
+  width:80px;height:80px;border-radius:20px;
+  background:var(--moss-dim);border:2px solid var(--moss);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:20px;
+  animation:logoFloat 2s ease-in-out infinite;
+}
+@keyframes logoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.splash-title{font-family:var(--font-display);font-weight:700;font-size:24px;letter-spacing:0.5px;margin-bottom:4px;}
+.splash-sub{font-size:12px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:30px;}
+.splash-footer{position:absolute;bottom:40px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-muted);font-family:var(--font-mono);}
+.splash-dot{width:6px;height:6px;border-radius:50%;background:var(--moss);animation:pulse 1.6s ease-in-out infinite;}
 
-  .alert-bar { display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 200; padding: 12px 20px; text-align: center; font-weight: 700; font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; font-family: var(--font-mono); }
-  .alert-bar.yellow { display: block; background: linear-gradient(90deg, rgba(46,37,25,0.97), rgba(62,48,20,0.97), rgba(46,37,25,0.97)); color: var(--ochre); border-bottom: 2px solid rgba(214,154,78,0.5); }
-  .alert-bar.red { display: block; background: linear-gradient(90deg, rgba(46,29,24,0.97), rgba(62,30,20,0.97), rgba(46,29,24,0.97)); color: var(--rust); border-bottom: 2px solid rgba(194,91,69,0.5); animation: bannerFlash 0.5s infinite; }
-  @keyframes bannerFlash { 0%,100%{opacity:1} 50%{opacity:0.6} }
+/* ===== HEADER ===== */
+.header{
+  position:sticky;top:0;z-index:50;padding:12px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(16,19,15,0.85);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-mark{width:32px;height:32px;border-radius:8px;background:var(--moss-dim);border:1px solid var(--moss);display:flex;align-items:center;justify-content:center;}
+.brand-mark svg{width:16px;height:16px;}
+.brand-text h1{font-family:var(--font-display);font-weight:600;font-size:15px;background:linear-gradient(135deg,var(--moss),#A9C9AF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.brand-text .sub{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;}
+.header-right{display:flex;align-items:center;gap:12px;}
+.header-icon{width:32px;height:32px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:0.2s;}
+.header-icon:hover{border-color:var(--border-strong);}
+.header-icon svg{width:14px;height:14px;color:var(--text-secondary);}
+.status-pill{display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);padding:4px 8px;border:1px solid var(--border-strong);border-radius:16px;background:var(--surface-2);}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--rust);transition:0.3s;}
+.dot.on{background:var(--moss);box-shadow:0 0 6px rgba(111,169,125,0.6);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
+.dot.pulse{animation:pulse 1.6s ease-in-out infinite;}
+.badge-pill{font-family:var(--font-mono);font-size:9px;font-weight:700;padding:3px 8px;border-radius:10px;letter-spacing:1px;}
+.badge-pill.safe{background:var(--moss-dim);color:var(--moss);border:1px solid var(--moss);}
+.badge-pill.warning{background:var(--ochre-dim);color:var(--ochre);border:1px solid var(--ochre);animation:badgePulse 1.2s infinite;}
+.badge-pill.danger{background:var(--rust-dim);color:var(--rust);border:1px solid var(--rust);animation:badgePulse 0.6s infinite;}
+@keyframes badgePulse{0%,100%{box-shadow:0 0 5px rgba(194,91,69,0.15)}50%{box-shadow:0 0 18px rgba(194,91,69,0.4)}}
 
-  /* ---- Header ---- */
-  .header{
-    position: sticky; top: 0; z-index: 50;
-    padding: 14px 24px;
-    display: flex; align-items: center; justify-content: space-between;
-    background: rgba(16,19,15,0.85);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--border);
-  }
-  .brand{ display: flex; align-items: center; gap: 10px; }
-  .brand-mark{
-    width: 34px; height: 34px; border-radius: 9px;
-    background: var(--moss-dim); border: 1px solid var(--moss);
-    display: flex; align-items: center; justify-content: center;
-  }
-  .brand-mark svg{ width: 18px; height: 18px; }
-  .brand-text h1{
-    font-family: var(--font-display); font-weight: 600; font-size: 17px;
-    background: linear-gradient(135deg, var(--moss), #A9C9AF);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  }
-  .brand-text .sub{ font-size: 10.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.2px; }
-  .header-right{ display: flex; align-items: center; gap: 14px; }
-  .status-pill{
-    display: flex; align-items: center; gap: 6px;
-    font-family: var(--font-mono); font-size: 11px;
-    color: var(--text-secondary); padding: 5px 10px;
-    border: 1px solid var(--border-strong); border-radius: 20px;
-    background: var(--surface-2);
-  }
-  .dot{ width: 6px; height: 6px; border-radius: 50%; background: var(--rust); transition: 0.3s; }
-  .dot.on{ background: var(--moss); box-shadow: 0 0 8px rgba(111,169,125,0.6); }
-  .dot.pulse{ animation: pulse 1.6s ease-in-out infinite; }
-  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
-  .badge-pill{
-    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
-    padding: 4px 10px; border-radius: 12px; letter-spacing: 1px;
-  }
-  .badge-pill.safe{ background: var(--moss-dim); color: var(--moss); border: 1px solid var(--moss); }
-  .badge-pill.warning{ background: var(--ochre-dim); color: var(--ochre); border: 1px solid var(--ochre); animation: badgePulse 1.2s infinite; }
-  .badge-pill.danger{ background: var(--rust-dim); color: var(--rust); border: 1px solid var(--rust); animation: badgePulse 0.6s infinite; }
-  @keyframes badgePulse{ 0%,100%{box-shadow:0 0 5px rgba(194,91,69,0.15)} 50%{box-shadow:0 0 18px rgba(194,91,69,0.4)} }
+/* ===== BOTTOM NAV ===== */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:50;
+  display:flex;justify-content:space-around;align-items:center;
+  padding:8px 0 6px;
+  background:rgba(16,19,15,0.92);backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);
+}
+.nav-item{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  cursor:pointer;padding:4px 12px;border-radius:10px;transition:0.2s;
+  min-width:56px;
+}
+.nav-item:hover{background:var(--surface-2);}
+.nav-item.active{color:var(--moss);}
+.nav-item svg{width:18px;height:18px;color:var(--text-muted);transition:0.2s;}
+.nav-item.active svg{color:var(--moss);}
+.nav-item span{font-size:9px;color:var(--text-muted);font-family:var(--font-mono);letter-spacing:0.5px;}
+.nav-item.active span{color:var(--moss);font-weight:600;}
 
-  /* ---- Layout: desktop grid ---- */
-  .main{
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 16px; padding: 20px 24px; max-width: 1400px; margin: 0 auto;
-  }
-  @media(max-width:960px){
-    .main{ grid-template-columns: 1fr; padding: 12px; gap: 12px; }
-  }
+/* ===== TABS ===== */
+.tab-content{display:none;padding-bottom:70px;min-height:calc(100vh - 120px);}
+.tab-content.active{display:block;}
 
-  /* ---- Cards ---- */
-  .card{
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 18px;
-  }
-  .card-title{
-    font-family: var(--font-mono); font-size: 11px;
-    text-transform: uppercase; letter-spacing: 1.4px;
-    color: var(--text-muted); margin-bottom: 14px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .card-title svg{ width: 13px; height: 13px; }
-  .card-title .line{ flex: 1; height: 1px; background: var(--border); }
+/* ===== CARDS ===== */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin:12px 16px;}
+.card-title{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.card-title svg{width:12px;height:12px;}
+.card-title .line{flex:1;height:1px;background:var(--border);}
 
-  /* ---- Left column ---- */
-  .left{ display: flex; flex-direction: column; gap: 16px; }
+/* ===== OVERVIEW (kept exactly as before) ===== */
+#tab-overview{padding:0 0 70px;}
+.ov-wrap{display:grid;grid-template-columns:1fr 320px;gap:16px;padding:16px;max-width:1400px;margin:0 auto;}
+@media(max-width:960px){.ov-wrap{grid-template-columns:1fr;padding:12px;gap:12px;}}
+.ov-left{display:flex;flex-direction:column;gap:14px;}
+.ov-sidebar{display:flex;flex-direction:column;gap:12px;}
+.risk-card{background:var(--moss-dim);border:1px solid var(--moss);border-radius:14px;padding:20px;}
+.risk-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.risk-label{font-size:11px;color:#A9C9AF;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.risk-value{font-family:var(--font-display);font-weight:700;font-size:32px;color:#D8ECDB;line-height:1;}
+.risk-badge-icon{width:36px;height:36px;border-radius:50%;background:rgba(111,169,125,0.18);border:1px solid var(--moss);display:flex;align-items:center;justify-content:center;}
+.risk-badge-icon svg{width:18px;height:18px;color:#D8ECDB;}
+.risk-bar-bg{width:100%;height:5px;background:rgba(0,0,0,0.3);border-radius:3px;margin-top:12px;overflow:hidden;}
+.risk-bar-fill{height:100%;border-radius:3px;transition:width 0.8s ease,background 0.8s ease;}
+.risk-bar-fill.low{background:var(--moss);}
+.risk-bar-fill.moderate{background:var(--ochre);}
+.risk-bar-fill.high{background:var(--rust);}
+.risk-bar-fill.critical{background:#ff3333;animation:riskPulse 0.5s infinite;}
+@keyframes riskPulse{0%,100%{opacity:1}50%{opacity:0.6}}
+.risk-meta{font-size:11px;color:#A9C9AF;margin-top:8px;display:flex;justify-content:space-between;font-family:var(--font-mono);}
+.prediction-text{font-size:10px;color:var(--text-muted);margin-top:6px;line-height:1.4;}
+/* Gauge */
+.gauge-card{padding:20px;text-align:center;}
+.gauge-wrap{position:relative;width:240px;height:120px;margin:0 auto 10px;}
+.gauge-arc{width:100%;height:110px;border-radius:110px 110px 0 0;background:var(--surface-2);border:3px solid var(--border);border-bottom:none;position:relative;overflow:hidden;}
+.gauge-zone{position:absolute;bottom:0;width:100%;height:100%;}
+.gz-green{background:conic-gradient(from 0.75turn,transparent 0%,rgba(111,169,125,0.15) 30%,transparent 50%);}
+.gz-yellow{background:conic-gradient(from 0.65turn,transparent 0%,rgba(214,154,78,0.1) 15%,transparent 30%);}
+.gz-red{background:conic-gradient(from 0.5turn,transparent 0%,rgba(194,91,69,0.15) 25%,transparent 50%);}
+.needle{position:absolute;bottom:0;left:50%;width:3px;height:90px;background:linear-gradient(to top,rgba(255,255,255,0.5),var(--moss));transform-origin:bottom center;transform:translateX(-50%) rotate(0deg);transition:transform 0.5s cubic-bezier(0.25,0.8,0.25,1);border-radius:2px;box-shadow:0 0 10px rgba(111,169,125,0.4);}
+.needle-dot{position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);width:14px;height:14px;background:radial-gradient(circle,var(--moss),#2A5A35);border-radius:50%;z-index:2;box-shadow:0 0 12px rgba(111,169,125,0.3);}
+.gauge-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--text-muted);font-family:var(--font-mono);margin-top:6px;}
+.tilt-num{font-family:var(--font-display);font-weight:700;font-size:40px;line-height:1;margin:10px 0 4px;transition:color 0.3s;}
+.tilt-num.safe{color:var(--moss);}
+.tilt-num.warning{color:var(--ochre);}
+.tilt-num.danger{color:var(--rust);animation:numPulse 0.6s infinite;}
+@keyframes numPulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.tilt-unit{font-size:11px;color:var(--text-muted);}
+.tilt-dev{font-size:10px;color:var(--text-muted);font-family:var(--font-mono);margin-top:3px;}
+/* Stats */
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.stat-val{font-family:var(--font-display);font-weight:700;font-size:22px;margin:3px 0 5px;transition:color 0.3s;}
+.stat-label{font-size:10px;color:var(--text-secondary);display:flex;align-items:center;gap:5px;}
+.stat-label svg{width:12px;height:12px;color:var(--text-muted);}
+.stat-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.stat-bar i{display:block;height:100%;border-radius:2px;transition:width 0.5s ease,background 0.5s ease;}
+.stat-bar i.blue{background:var(--slate);}
+.stat-bar i.ochre{background:var(--ochre);}
+.stat-bar i.rust{background:var(--rust);}
+.stat-foot{display:flex;justify-content:space-between;font-size:9px;color:var(--text-muted);margin-top:4px;}
+/* Toggles */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;cursor:pointer;transition:0.2s;}
+.toggle-row:hover{border-color:var(--border-strong);}
+.toggle-row.on{border-color:var(--moss);background:var(--moss-dim);}
+.toggle-left{display:flex;align-items:center;gap:10px;}
+.toggle-icon{width:28px;height:28px;border-radius:7px;background:var(--surface);border:1px solid var(--border-strong);display:flex;align-items:center;justify-content:center;}
+.toggle-icon svg{width:13px;height:13px;color:var(--text-secondary);}
+.toggle-row.on .toggle-icon{border-color:var(--moss);background:rgba(111,169,125,0.1);}
+.toggle-row.on .toggle-icon svg{color:var(--moss);}
+.toggle-title{font-size:12px;font-weight:500;}
+.toggle-state{font-size:9px;color:var(--text-muted);font-family:var(--font-mono);}
+.toggle-row.on .toggle-state{color:var(--moss);}
+.switch{width:34px;height:18px;border-radius:10px;background:var(--surface);border:1px solid var(--border-strong);position:relative;transition:0.3s;}
+.toggle-row.on .switch{background:var(--moss-dim);border-color:var(--moss);}
+.switch i{position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--text-muted);transition:0.3s;}
+.toggle-row.on .switch i{left:18px;background:var(--moss);box-shadow:0 0 6px rgba(111,169,125,0.5);}
+/* Log */
+.log-wrap{max-height:180px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+.log-entry{padding:5px 0;border-bottom:1px solid var(--border);font-size:11px;display:flex;justify-content:space-between;font-family:var(--font-mono);}
+.log-entry:last-child{border-bottom:none;}
+.log-t{color:var(--text-muted);}
+.log-v{font-weight:600;}
+.log-v.safe{color:var(--moss);}
+.log-v.warning{color:var(--ochre);}
+.log-v.danger{color:var(--rust);}
+.log-empty{display:flex;align-items:center;justify-content:center;gap:6px;padding:20px 0;color:var(--text-muted);font-size:11px;font-family:var(--font-mono);}
+.log-empty svg{width:13px;height:13px;}
+/* Map */
+.map-card{border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:12px 16px;}
+#map{height:300px;z-index:1;background:var(--surface-2);}
+.leaflet-container{background:var(--surface-2)!important;}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);}
+.info-row:last-child{border-bottom:none;}
+.info-l{color:var(--text-muted);font-size:11px;}
+.info-v{color:var(--text-primary);font-weight:600;font-size:12px;font-family:var(--font-mono);}
 
-  /* ---- Risk hero card ---- */
-  .risk-card{
-    background: var(--moss-dim);
-    border: 1px solid var(--moss);
-    border-radius: 16px;
-    padding: 22px;
-  }
-  .risk-top{ display: flex; justify-content: space-between; align-items: flex-start; }
-  .risk-label{ font-size: 12px; color: #A9C9AF; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-  .risk-value{
-    font-family: var(--font-display); font-weight: 700;
-    font-size: 34px; color: #D8ECDB; line-height: 1; transition: color 0.3s;
-  }
-  .risk-badge-icon{
-    width: 40px; height: 40px; border-radius: 50%;
-    background: rgba(111,169,125,0.18); border: 1px solid var(--moss);
-    display: flex; align-items: center; justify-content: center;
-  }
-  .risk-badge-icon svg{ width: 20px; height: 20px; color: #D8ECDB; }
-  .risk-bar-bg{ width: 100%; height: 6px; background: rgba(0,0,0,0.3); border-radius: 3px; margin-top: 14px; overflow: hidden; }
-  .risk-bar-fill{ height: 100%; border-radius: 3px; transition: width 0.8s ease, background 0.8s ease; }
-  .risk-bar-fill.low{ background: var(--moss); }
-  .risk-bar-fill.moderate{ background: var(--ochre); }
-  .risk-bar-fill.high{ background: var(--rust); }
-  .risk-bar-fill.critical{ background: #ff3333; animation: riskPulse 0.5s infinite; }
-  @keyframes riskPulse{ 0%,100%{opacity:1} 50%{opacity:0.6} }
-  .risk-meta{
-    font-size: 12px; color: #A9C9AF; margin-top: 10px;
-    display: flex; justify-content: space-between; font-family: var(--font-mono);
-  }
-  .prediction-text{ font-size: 11px; color: var(--text-muted); margin-top: 8px; line-height: 1.5; }
+/* ===== GIS MAP TAB ===== */
+#tab-map{padding:16px;padding-bottom:70px;}
+#gis-map{height:calc(100vh - 180px);min-height:400px;border-radius:14px;background:var(--surface-2);}
+.corridor-legend{position:absolute;bottom:16px;left:16px;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;}
+.corridor-legend h4{font-size:10px;color:var(--text-muted);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-secondary);margin-bottom:4px;}
+.legend-dot{width:8px;height:8px;border-radius:50%;}
 
-  /* ---- Gauge ---- */
-  .gauge-card{ padding: 24px; text-align: center; }
-  .gauge-wrap{ position: relative; width: 260px; height: 130px; margin: 0 auto 12px; }
-  .gauge-arc{
-    width: 100%; height: 120px;
-    border-radius: 120px 120px 0 0;
-    background: var(--surface-2);
-    border: 3px solid var(--border);
-    border-bottom: none;
-    position: relative; overflow: hidden;
-  }
-  .gauge-zone{ position: absolute; bottom: 0; width: 100%; height: 100%; }
-  .gz-green{ background: conic-gradient(from 0.75turn, transparent 0%, rgba(111,169,125,0.15) 30%, transparent 50%); }
-  .gz-yellow{ background: conic-gradient(from 0.65turn, transparent 0%, rgba(214,154,78,0.1) 15%, transparent 30%); }
-  .gz-red{ background: conic-gradient(from 0.5turn, transparent 0%, rgba(194,91,69,0.15) 25%, transparent 50%); }
-  .needle{
-    position: absolute; bottom: 0; left: 50%;
-    width: 3px; height: 100px;
-    background: linear-gradient(to top, rgba(255,255,255,0.5), var(--moss));
-    transform-origin: bottom center; transform: translateX(-50%) rotate(0deg);
-    transition: transform 0.5s cubic-bezier(0.25,0.8,0.25,1);
-    border-radius: 2px; box-shadow: 0 0 12px rgba(111,169,125,0.4);
-  }
-  .needle-dot{
-    position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
-    width: 16px; height: 16px;
-    background: radial-gradient(circle, var(--moss), #2A5A35);
-    border-radius: 50%; z-index: 2;
-    box-shadow: 0 0 14px rgba(111,169,125,0.3);
-  }
-  .gauge-labels{ display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); margin-top: 6px; padding: 0 4px; }
-  .tilt-num{
-    font-family: var(--font-display); font-weight: 700;
-    font-size: 42px; line-height: 1; margin: 12px 0 4px;
-    transition: color 0.3s;
-  }
-  .tilt-num.safe{ color: var(--moss); }
-  .tilt-num.warning{ color: var(--ochre); text-shadow: 0 0 20px rgba(214,154,78,0.3); }
-  .tilt-num.danger{ color: var(--rust); text-shadow: 0 0 30px rgba(194,91,69,0.4); animation: numPulse 0.6s infinite; }
-  @keyframes numPulse{ 0%,100%{opacity:1} 50%{opacity:0.5} }
-  .tilt-unit{ font-size: 0.75rem; color: var(--text-muted); }
-  .tilt-dev{ font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono); margin-top: 4px; }
+/* ===== STATIONS TAB ===== */
+#tab-stations{padding:16px;padding-bottom:70px;}
+.station-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;}
+.station-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.station-name{font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--text-primary);line-height:1.3;}
+.station-badge{font-family:var(--font-mono);font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;letter-spacing:0.5px;white-space:nowrap;}
+.station-badge.high{background:var(--rust-dim);color:var(--rust);border:1px solid var(--rust);}
+.station-badge.moderate{background:var(--ochre-dim);color:var(--ochre);border:1px solid var(--ochre);}
+.station-badge.low{background:var(--moss-dim);color:var(--moss);border:1px solid var(--moss);}
+.station-meta{font-size:10px;color:var(--text-muted);font-family:var(--font-mono);margin-bottom:10px;}
+.station-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;}
+.sg-item{text-align:center;padding:8px 4px;background:var(--surface-2);border-radius:8px;border:1px solid var(--border);}
+.sg-val{font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--text-primary);}
+.sg-val.high{color:var(--rust);}
+.sg-val.med{color:var(--ochre);}
+.sg-label{font-size:9px;color:var(--text-muted);font-family:var(--font-mono);margin-top:2px;}
+@media(max-width:600px){.station-grid{grid-template-columns:1fr 1fr;gap:6px;}}
 
-  /* ---- Moisture + Density row ---- */
-  .row-2{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .stat-val{ font-family: var(--font-display); font-weight: 700; font-size: 24px; margin: 4px 0 6px; transition: color 0.3s; }
-  .stat-label{ font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
-  .stat-label svg{ width: 13px; height: 13px; color: var(--text-muted); }
-  .stat-bar{ height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
-  .stat-bar i{ display: block; height: 100%; border-radius: 3px; transition: width 0.5s ease, background 0.5s ease; }
-  .stat-bar i.blue{ background: var(--slate); }
-  .stat-bar i.ochre{ background: var(--ochre); }
-  .stat-bar i.rust{ background: var(--rust); }
-  .stat-foot{ display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-top: 6px; }
+/* ===== ALERTS TAB ===== */
+#tab-alerts{padding:16px;padding-bottom:70px;}
+.segment-tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:14px;}
+.seg-tab{flex:1;text-align:center;padding:8px;border-radius:9px;font-size:11px;font-family:var(--font-mono);cursor:pointer;color:var(--text-muted);transition:0.2s;}
+.seg-tab.active{background:var(--moss-dim);color:var(--moss);font-weight:600;}
+.alert-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px;border-left:3px solid var(--rust);}
+.alert-card.warn{border-left-color:var(--ochre);}
+.alert-card.info{border-left-color:var(--slate);}
+.alert-title{font-family:var(--font-display);font-weight:600;font-size:13px;margin-bottom:6px;}
+.alert-body{font-size:11px;color:var(--text-secondary);line-height:1.5;margin-bottom:8px;}
+.alert-time{font-size:9px;color:var(--text-muted);font-family:var(--font-mono);}
 
-  /* ---- Map ---- */
-  .map-card{ grid-column: 1 / -1; }
-  #map{ height: 320px; border-radius: 0 0 16px 16px; z-index: 1; background: var(--surface-2); }
-  .leaflet-container{ background: var(--surface-2) !important; }
+/* ===== INCIDENT TAB ===== */
+#tab-incident{padding:16px;padding-bottom:70px;}
+.incident-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;}
+.incident-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.incident-name{font-family:var(--font-display);font-weight:600;font-size:13px;}
+.incident-loc{font-size:10px;color:var(--text-muted);font-family:var(--font-mono);margin-bottom:8px;}
+.incident-summary{font-size:11px;color:var(--text-secondary);line-height:1.5;margin-bottom:10px;}
+.incident-telemetry{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px;}
+.it-item{text-align:center;padding:8px;background:var(--surface-2);border-radius:8px;border:1px solid var(--border);}
+.it-val{font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--text-primary);}
+.it-label{font-size:8px;color:var(--text-muted);font-family:var(--font-mono);margin-top:2px;}
+.incident-btn{width:100%;padding:10px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);color:var(--text-secondary);font-size:12px;font-family:var(--font-mono);cursor:pointer;text-align:center;transition:0.2s;}
+.incident-btn:hover{border-color:var(--moss);color:var(--moss);}
 
-  /* ---- Sidebar ---- */
-  .sidebar{ display: flex; flex-direction: column; gap: 14px; }
-  .info-row{ display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
-  .info-row:last-child{ border-bottom: none; }
-  .info-l{ color: var(--text-muted); font-size: 0.75rem; }
-  .info-v{ color: var(--text-primary); font-weight: 600; font-size: 0.78rem; font-family: var(--font-mono); }
-
-  /* ---- Toggle rows ---- */
-  .toggle-row{
-    display: flex; align-items: center; justify-content: space-between;
-    background: var(--surface-2); border: 1px solid var(--border);
-    border-radius: 14px; padding: 12px 14px;
-    cursor: pointer; transition: all 0.2s;
-  }
-  .toggle-row:hover{ border-color: var(--border-strong); }
-  .toggle-row.on{ border-color: var(--moss); background: var(--moss-dim); }
-  .toggle-left{ display: flex; align-items: center; gap: 10px; }
-  .toggle-icon{
-    width: 30px; height: 30px; border-radius: 8px;
-    background: var(--surface); border: 1px solid var(--border-strong);
-    display: flex; align-items: center; justify-content: center;
-  }
-  .toggle-icon svg{ width: 14px; height: 14px; color: var(--text-secondary); }
-  .toggle-row.on .toggle-icon{ border-color: var(--moss); background: rgba(111,169,125,0.1); }
-  .toggle-row.on .toggle-icon svg{ color: var(--moss); }
-  .toggle-title{ font-size: 13px; font-weight: 500; }
-  .toggle-state{ font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); }
-  .toggle-row.on .toggle-state{ color: var(--moss); }
-  .switch{
-    width: 36px; height: 20px; border-radius: 12px;
-    background: var(--surface); border: 1px solid var(--border-strong);
-    position: relative; transition: all 0.3s;
-  }
-  .toggle-row.on .switch{ background: var(--moss-dim); border-color: var(--moss); }
-  .switch i{
-    position: absolute; top: 2px; left: 2px;
-    width: 14px; height: 14px; border-radius: 50%;
-    background: var(--text-muted); transition: all 0.3s;
-  }
-  .toggle-row.on .switch i{ left: 18px; background: var(--moss); box-shadow: 0 0 8px rgba(111,169,125,0.5); }
-
-  /* ---- Log ---- */
-  .log-wrap{ max-height: 200px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
-  .log-entry{
-    padding: 6px 0; border-bottom: 1px solid var(--border);
-    font-size: 11.5px; display: flex; justify-content: space-between;
-    font-family: var(--font-mono);
-  }
-  .log-entry:last-child{ border-bottom: none; }
-  .log-t{ color: var(--text-muted); }
-  .log-v{ font-weight: 600; }
-  .log-v.safe{ color: var(--moss); } .log-v.warning{ color: var(--ochre); } .log-v.danger{ color: var(--rust); }
-  .log-empty{ display: flex; align-items: center; justify-content: center; gap: 8px; padding: 24px 0; color: var(--text-muted); font-size: 12px; font-family: var(--font-mono); }
-  .log-empty svg{ width: 14px; height: 14px; }
-
-  /* ---- Footer ---- */
-  .footer{ text-align: center; padding: 20px; font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); letter-spacing: 1px; }
+/* ===== OVERLAYS ===== */
+.overlay{display:none;position:fixed;inset:0;z-index:100;pointer-events:none;}
+.overlay.red{display:block;background:radial-gradient(ellipse at center,rgba(194,91,69,0.2) 0%,transparent 70%);animation:flash 0.7s infinite;}
+.overlay.yellow{display:block;background:radial-gradient(ellipse at center,rgba(214,154,78,0.12) 0%,transparent 70%);animation:flash 1.5s infinite;}
+@keyframes flash{0%,100%{opacity:0.2}50%{opacity:1}}
+.alert-bar{display:none;position:fixed;top:0;left:0;right:0;z-index:200;padding:10px 20px;text-align:center;font-weight:700;font-size:0.75rem;letter-spacing:2px;text-transform:uppercase;font-family:var(--font-mono);}
+.alert-bar.yellow{display:block;background:linear-gradient(90deg,rgba(46,37,25,0.97),rgba(62,48,20,0.97),rgba(46,37,25,0.97));color:var(--ochre);border-bottom:2px solid rgba(214,154,78,0.5);}
+.alert-bar.red{display:block;background:linear-gradient(90deg,rgba(46,29,24,0.97),rgba(62,30,20,0.97),rgba(46,29,24,0.97));color:var(--rust);border-bottom:2px solid rgba(194,91,69,0.5);animation:bannerFlash 0.5s infinite;}
+@keyframes bannerFlash{0%,100%{opacity:1}50%{opacity:0.6}}
 </style>
 </head>
 <body>
 
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#6FA97D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="40" height="40"><path d="M8 21l4-13 4 13"/><path d="M2 21h20"/><path d="M12 8l3-6"/></svg>
+  </div>
+  <div class="splash-title">LANDSAFE AI</div>
+  <div class="splash-sub">by scapegoats</div>
+  <div class="splash-footer"><span class="splash-dot"></span> North Eastern Regional Monitoring Network</div>
+</div>
+
+<!-- OVERLAYS -->
 <div class="overlay" id="overlay"></div>
 <div class="alert-bar" id="alert-bar"></div>
 
-<!-- Header -->
+<!-- HEADER -->
 <div class="header">
   <div class="brand">
     <div class="brand-mark">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#6FA97D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21l4-13 4 13"/><path d="M2 21h20"/><path d="M12 8l3-6"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#6FA97D" stroke-width="2" stroke-linecap="round"><path d="M8 21l4-13 4 13"/><path d="M2 21h20"/><path d="M12 8l3-6"/></svg>
     </div>
     <div class="brand-text">
-      <h1>Landsafe AI</h1>
-      <div class="sub">Slope monitoring</div>
+      <h1>LANDSAFE AI</h1>
+      <div class="sub">• by scapegoats</div>
     </div>
   </div>
   <div class="header-right">
@@ -295,350 +285,267 @@
   </div>
 </div>
 
-<!-- Main grid -->
-<div class="main">
-  <!-- LEFT column -->
-  <div class="left">
-
-    <!-- Risk card -->
-    <div class="risk-card">
-      <div class="risk-top">
-        <div>
-          <div class="risk-label">Landslide risk</div>
-          <div class="risk-value" id="risk-level">Low</div>
+<!-- ===== TAB: OVERVIEW ===== -->
+<div id="tab-overview" class="tab-content active">
+  <div class="ov-wrap">
+    <div class="ov-left">
+      <div class="risk-card">
+        <div class="risk-top">
+          <div><div class="risk-label">Landslide risk</div><div class="risk-value" id="risk-level">Low</div></div>
+          <div class="risk-badge-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11z"/></svg></div>
         </div>
-        <div class="risk-badge-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11z"/></svg>
+        <div class="risk-bar-bg"><div class="risk-bar-fill low" id="risk-bar" style="width:0%"></div></div>
+        <div class="risk-meta"><span>Trend: <strong id="risk-trend">stable</strong></span><span id="risk-score">0%</span></div>
+        <div class="prediction-text" id="prediction-text">Awaiting data…</div>
+      </div>
+      <div class="card gauge-card">
+        <div class="gauge-wrap"><div class="gauge-arc"><div class="gauge-zone gz-green"></div><div class="gauge-zone gz-yellow"></div><div class="gauge-zone gz-red"></div><div class="needle" id="needle"></div><div class="needle-dot"></div></div></div>
+        <div class="gauge-labels"><span>40°+ danger</span><span>0°</span><span>40°+ danger</span></div>
+        <div class="tilt-num safe" id="tilt-val">0.00°</div>
+        <div class="tilt-unit">Tilt Angle</div>
+        <div class="tilt-dev" id="tilt-dev">Waiting for sensor data…</div>
+      </div>
+      <div class="row-2">
+        <div class="card">
+          <div class="stat-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8 8 5 11.5 5 15a7 7 0 0014 0c0-3.5-3-7-7-13z"/></svg>Soil moisture</div>
+          <div class="stat-val" id="moisture-val" style="color:var(--slate);">0%</div>
+          <div class="stat-bar"><i class="blue" id="moisture-bar" style="width:4%"></i></div>
+          <div class="stat-foot"><span>Dry</span><span>Saturated</span></div>
+        </div>
+        <div class="card">
+          <div class="stat-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l4-4 3 3 5-6"/></svg>Density</div>
+          <div class="stat-val" id="water-density" style="color:var(--slate);">—</div>
+          <div class="stat-bar"><i class="blue" id="density-bar" style="width:0%"></i></div>
+          <div class="stat-foot"><span>kg/m³</span><span id="density-sub">—</span></div>
         </div>
       </div>
-      <div class="risk-bar-bg"><div class="risk-bar-fill low" id="risk-bar" style="width:0%"></div></div>
-      <div class="risk-meta">
-        <span>Trend: <strong id="risk-trend">stable</strong></span>
-        <span id="risk-score">0%</span>
-      </div>
-      <div class="prediction-text" id="prediction-text">Awaiting data…</div>
     </div>
-
-    <!-- Gauge -->
-    <div class="card gauge-card">
-      <div class="gauge-wrap">
-        <div class="gauge-arc">
-          <div class="gauge-zone gz-green"></div>
-          <div class="gauge-zone gz-yellow"></div>
-          <div class="gauge-zone gz-red"></div>
-          <div class="needle" id="needle"></div>
-          <div class="needle-dot"></div>
-        </div>
-      </div>
-      <div class="gauge-labels"><span>40°+ danger</span><span>0°</span><span>40°+ danger</span></div>
-      <div class="tilt-num safe" id="tilt-val">0.00°</div>
-      <div class="tilt-unit">Tilt Angle</div>
-      <div class="tilt-dev" id="tilt-dev">Waiting for sensor data…</div>
-    </div>
-
-    <!-- Moisture + Density -->
-    <div class="row-2">
+    <div class="ov-sidebar">
       <div class="card">
-        <div class="stat-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8 8 5 11.5 5 15a7 7 0 0014 0c0-3.5-3-7-7-13z"/></svg>
-          Soil moisture
-        </div>
-        <div class="stat-val" id="moisture-val" style="color:var(--slate);">0%</div>
-        <div class="stat-bar"><i class="blue" id="moisture-bar" style="width:4%"></i></div>
-        <div class="stat-foot"><span>Dry</span><span>Saturated</span></div>
+        <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>Sensor info<span class="line"></span></div>
+        <div class="info-row"><span class="info-l">Device</span><span class="info-v" id="dev-id">—</span></div>
+        <div class="info-row"><span class="info-l">Status</span><span class="info-v" id="dev-status">—</span></div>
+        <div class="info-row"><span class="info-l">Last update</span><span class="info-v" id="dev-time">—</span></div>
       </div>
       <div class="card">
-        <div class="stat-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l4-4 3 3 5-6"/></svg>
-          Density
+        <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>Alert controls<span class="line"></span></div>
+        <div class="toggle-row" id="siren-btn" onclick="toggleSiren()" style="margin-bottom:8px;">
+          <div class="toggle-left"><div class="toggle-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6"/></svg></div><div><div class="toggle-title">Siren</div><div class="toggle-state" id="siren-state">Off</div></div></div>
+          <div class="switch"><i id="siren-dot"></i></div>
         </div>
-        <div class="stat-val" id="water-density" style="color:var(--slate);">—</div>
-        <div class="stat-bar"><i class="blue" id="density-bar" style="width:0%"></i></div>
-        <div class="stat-foot"><span>kg/m³</span><span id="density-sub">—</span></div>
+        <div class="toggle-row" id="vib-btn" onclick="toggleVibrate()">
+          <div class="toggle-left"><div class="toggle-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></div><div><div class="toggle-title">Vibrate</div><div class="toggle-state" id="vib-state">Off</div></div></div>
+          <div class="switch"><i id="vib-dot"></i></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l4-6 4 3 5-8"/></svg>Live log<span class="line"></span></div>
+        <div class="log-wrap" id="log-wrap"><div class="log-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Waiting for data</div></div>
       </div>
     </div>
   </div>
-
-  <!-- RIGHT sidebar -->
-  <div class="sidebar">
-
-    <!-- Sensor info -->
-    <div class="card">
-      <div class="card-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>
-        Sensor info<span class="line"></span>
-      </div>
-      <div class="info-row"><span class="info-l">Device</span><span class="info-v" id="dev-id">—</span></div>
-      <div class="info-row"><span class="info-l">Status</span><span class="info-v" id="dev-status">—</span></div>
-      <div class="info-row"><span class="info-l">Last update</span><span class="info-v" id="dev-time">—</span></div>
-    </div>
-
-    <!-- Alert controls -->
-    <div class="card">
-      <div class="card-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
-        Alert controls<span class="line"></span>
-      </div>
-      <div class="toggle-row" id="siren-btn" onclick="toggleSiren()" style="margin-bottom:8px;">
-        <div class="toggle-left">
-          <div class="toggle-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6"/></svg>
-          </div>
-          <div><div class="toggle-title">Siren</div><div class="toggle-state" id="siren-state">Off</div></div>
-        </div>
-        <div class="switch"><i id="siren-dot"></i></div>
-      </div>
-      <div class="toggle-row" id="vib-btn" onclick="toggleVibrate()">
-        <div class="toggle-left">
-          <div class="toggle-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
-          </div>
-          <div><div class="toggle-title">Vibrate</div><div class="toggle-state" id="vib-state">Off</div></div>
-        </div>
-        <div class="switch"><i id="vib-dot"></i></div>
-      </div>
-    </div>
-
-    <!-- Live log -->
-    <div class="card">
-      <div class="card-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l4-6 4 3 5-8"/></svg>
-        Live log<span class="line"></span>
-      </div>
-      <div class="log-wrap" id="log-wrap">
-        <div class="log-empty">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-          Waiting for data
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Map — full width -->
-  <div class="card map-card">
-    <div class="card-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4z"/><path d="M8 2v16M16 6v16"/></svg>
-      Regional monitoring map<span class="line"></span>
-    </div>
+  <div class="map-card">
     <div id="map"></div>
   </div>
 </div>
 
-<div class="footer">LANDSAFE AI v2.0 — REAL-TIME LANDSLIDE MONITORING</div>
+<!-- ===== TAB: GIS MAP ===== -->
+<div id="tab-map" class="tab-content">
+  <div style="position:relative;">
+    <div id="gis-map"></div>
+  </div>
+</div>
+
+<!-- ===== TAB: STATIONS ===== -->
+<div id="tab-stations" class="tab-content"></div>
+
+<!-- ===== TAB: ALERTS ===== -->
+<div id="tab-alerts" class="tab-content"></div>
+
+<!-- ===== TAB: INCIDENT ===== -->
+<div id="tab-incident" class="tab-content"></div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="switchTab('overview',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    <span>Overview</span>
+  </div>
+  <div class="nav-item" onclick="switchTab('map',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4z"/><path d="M8 2v16M16 6v16"/></svg>
+    <span>GIS Map</span>
+  </div>
+  <div class="nav-item" onclick="switchTab('stations',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21l4-13 4 13"/><path d="M2 21h20"/></svg>
+    <span>Stations</span>
+  </div>
+  <div class="nav-item" onclick="switchTab('alerts',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+    <span>Alerts</span>
+  </div>
+  <div class="nav-item" onclick="switchTab('incident',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <span>Incident</span>
+  </div>
+</div>
 
 <script>
-  const API = `${location.origin}/api/latest`;
-  const HIST = `${location.origin}/api/history`;
-  const RISK = `${location.origin}/api/risk`;
+// ===== SPLASH =====
+setTimeout(()=>{document.getElementById('splash').classList.add('hide');setTimeout(()=>document.getElementById('splash').remove(),700);},2000);
 
-  let sirenOn = false, vibOn = false;
-  let audioCtx = null, sirenOsc = null;
-  let lastStatus = 'safe', lastTS = '';
-  let vibInterval = null;
+// ===== TAB SWITCHING =====
+function switchTab(name, el){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  if(name==='map'&&!gisMapReady) initGISMap();
+}
 
-  const $ = id => document.getElementById(id);
+// ===== OVERVIEW: EXACT SAME JS AS BEFORE =====
+const API=`${location.origin}/api/latest`;
+const HIST=`${location.origin}/api/history`;
+const RISK=`${location.origin}/api/risk`;
+let sirenOn=false,vibOn=false,audioCtx=null,sirenOsc=null,lastStatus='safe',lastTS='',vibInterval=null;
+const $=id=>document.getElementById(id);
 
-  // ---- Audio ----
-  function initAudio() {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-  }
-  document.addEventListener('click', initAudio, { once: false });
-  document.addEventListener('touchstart', initAudio, { once: false });
+function initAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();}
+document.addEventListener('click',initAudio,{once:false});
+document.addEventListener('touchstart',initAudio,{once:false});
+function startSiren(){initAudio();if(sirenOsc)return;sirenOsc=audioCtx.createOscillator();const g=audioCtx.createGain();sirenOsc.type='sawtooth';sirenOsc.frequency.setValueAtTime(800,audioCtx.currentTime);sirenOsc.frequency.linearRampToValueAtTime(1200,audioCtx.currentTime+0.3);sirenOsc.frequency.linearRampToValueAtTime(600,audioCtx.currentTime+0.6);g.gain.setValueAtTime(1.0,audioCtx.currentTime);sirenOsc.connect(g);g.connect(audioCtx.destination);sirenOsc.start();sirenOsc.onended=()=>{sirenOsc=null;if(lastStatus!=='safe'&&sirenOn)startSiren();};}
+function stopSiren(){if(sirenOsc){try{sirenOsc.stop();}catch(e){}sirenOsc=null;}}
+function startContinuousVibrate(){if(vibInterval)return;vibInterval=setInterval(()=>{if(navigator.vibrate)navigator.vibrate([400,100,400,100,400]);},1500);if(navigator.vibrate)navigator.vibrate([400,100,400,100,400]);}
+function stopContinuousVibrate(){if(vibInterval){clearInterval(vibInterval);vibInterval=null;}if(navigator.vibrate)navigator.vibrate(0);}
+function toggleSiren(){sirenOn=!sirenOn;$('siren-btn').classList.toggle('on',sirenOn);$('siren-state').textContent=sirenOn?'On':'Off';if(sirenOn){initAudio();if(lastStatus!=='safe')startSiren();}else stopSiren();}
+function toggleVibrate(){vibOn=!vibOn;$('vib-btn').classList.toggle('on',vibOn);$('vib-state').textContent=vibOn?'On':'Off';if(vibOn){navigator.vibrate&&navigator.vibrate(200);if(lastStatus==='danger')startContinuousVibrate();}else stopContinuousVibrate();}
 
-  function startSiren() {
-    initAudio(); if (sirenOsc) return;
-    sirenOsc = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    sirenOsc.type = 'sawtooth';
-    sirenOsc.frequency.setValueAtTime(800, audioCtx.currentTime);
-    sirenOsc.frequency.linearRampToValueAtTime(1200, audioCtx.currentTime + 0.3);
-    sirenOsc.frequency.linearRampToValueAtTime(600, audioCtx.currentTime + 0.6);
-    g.gain.setValueAtTime(1.0, audioCtx.currentTime);
-    sirenOsc.connect(g); g.connect(audioCtx.destination);
-    sirenOsc.start();
-    sirenOsc.onended = () => { sirenOsc = null; if (lastStatus !== 'safe' && sirenOn) startSiren(); };
-  }
-  function stopSiren() { if (sirenOsc) { try { sirenOsc.stop(); } catch(e) {} sirenOsc = null; } }
+// Overview map
+const map=L.map('map',{zoomControl:true,attributionControl:false}).setView([25.5,91.9],7);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxZoom:16}).addTo(map);
+let sensorMarker=null,riskCircle=null,neighborMarkersAdded=false;
+function updateMap(lat,lng,riskScore,status){
+  const c=status==='danger'?'#C25B45':status==='warning'?'#D69A4E':'#6FA97D';
+  if(!sensorMarker){sensorMarker=L.circleMarker([lat,lng],{radius:8,fillColor:c,color:'#ECEFE9',weight:2,fillOpacity:0.8}).addTo(map).bindPopup('<b>Landsafe Sensor</b><br>sensor-001');}else{sensorMarker.setStyle({fillColor:c});}
+  if(!riskCircle){riskCircle=L.circle([lat,lng],{radius:1000+riskScore*50,fillColor:c,color:c,weight:1,fillOpacity:0.1+riskScore*0.003}).addTo(map);}else{riskCircle.setStyle({fillColor:c,color:c,fillOpacity:0.1+riskScore*0.003});riskCircle.setRadius(1000+riskScore*50);}
+  if(!neighborMarkersAdded){neighborMarkersAdded=true;[[25.67,91.88],[25.45,92.10],[25.55,91.75],[25.35,91.95],[25.70,92.05],[25.50,91.60]].forEach(([nlat,nlng])=>{const r=Math.max(0,riskScore+(Math.random()-0.5)*30);const cc=r>=70?'#C25B45':r>=40?'#D69A4E':'#6FA97D';L.circleMarker([nlat,nlng],{radius:4,fillColor:cc,color:cc,weight:1,fillOpacity:0.5}).addTo(map);});}
+}
+function update(data,risk){
+  const{tilt,moisture,status,device_id,timestamp}=data;const m=moisture||0;
+  const clamped=Math.max(-90,Math.min(90,tilt));$('needle').style.transform=`translateX(-50%) rotate(${-(clamped/90)*90}deg)`;
+  $('tilt-val').textContent=`${tilt.toFixed(2)}°`;$('tilt-val').className=`tilt-num ${status}`;$('tilt-dev').textContent=`Device: ${device_id}`;
+  $('badge').textContent=status.toUpperCase();$('badge').className=`badge-pill ${status}`;
+  $('dev-id').textContent=device_id;$('dev-status').textContent=status.toUpperCase();
+  $('dev-status').style.color=status==='danger'?'var(--rust)':status==='warning'?'var(--ochre)':'var(--moss)';
+  $('dev-time').textContent=new Date(timestamp).toLocaleTimeString();
+  $('moisture-val').textContent=`${m.toFixed(1)}%`;$('moisture-val').style.color=m>=80?'var(--rust)':m>=60?'var(--ochre)':'var(--slate)';
+  const mBar=$('moisture-bar');mBar.style.width=`${Math.max(4,m)}%`;mBar.className=m>=80?'rust':m>=60?'ochre':'blue';
+  if(risk){const rScore=risk.risk_score||0;$('risk-level').textContent=risk.risk_level||'LOW';
+  $('risk-level').style.color=rScore>=70?'#C25B45':rScore>=40?'#D69A4E':rScore>=15?'#D69A4E':'#6FA97D';
+  $('risk-score').textContent=`${rScore.toFixed(0)}%`;const rBar=$('risk-bar');rBar.style.width=`${rScore}%`;
+  rBar.className='risk-bar-fill '+(rScore>=70?'critical':rScore>=40?'high':rScore>=15?'moderate':'low');
+  $('prediction-text').textContent=risk.prediction||'';$('risk-trend').textContent=risk.trend||'stable';
+  $('risk-trend').style.color=risk.trend==='increasing'?'var(--rust)':risk.trend==='decreasing'?'var(--moss)':'var(--text-muted)';
+  const density=risk.water_density||1000;$('water-density').textContent=`${density.toFixed(0)}`;
+  $('water-density').style.color=m>=80?'var(--rust)':m>=60?'var(--ochre)':'var(--slate)';$('density-sub').textContent='kg/m³';
+  const dBar=$('density-bar');dBar.style.width=`${Math.min(100,(density/2000)*100)}%`;dBar.className=m>=80?'rust':m>=60?'ochre':'blue';}
+  updateMap(25.5,91.9,risk?risk.risk_score:0,status);
+  $('overlay').className='overlay';$('alert-bar').className='alert-bar';
+  if(status==='danger'){$('overlay').classList.add('red');$('alert-bar').className='alert-bar red';$('alert-bar').textContent='⚠️ DANGER — GROUND SHIFT DETECTED';if(sirenOn)startSiren();if(vibOn)startContinuousVibrate();}
+  else if(status==='warning'){$('overlay').classList.add('yellow');$('alert-bar').className='alert-bar yellow';$('alert-bar').textContent='⚠ WARNING — TILT ANOMALY DETECTED';if(lastStatus==='danger')stopContinuousVibrate();}
+  else{stopSiren();stopContinuousVibrate();}
+  const t=new Date(timestamp).toLocaleTimeString();const entry=document.createElement('div');entry.className='log-entry';
+  entry.innerHTML=`<span class="log-t">${t}</span><span class="log-v ${status}">${tilt.toFixed(2)}° M:${m.toFixed(0)}% ${status==='danger'?'🔴':status==='warning'?'🟡':'🟢'}</span>`;
+  $('log-wrap').insertBefore(entry,$('log-wrap').firstChild);while($('log-wrap').children.length>50)$('log-wrap').removeChild($('log-wrap').lastChild);
+  lastStatus=status;
+}
+async function poll(){try{const r=await fetch(API);const j=await r.json();if(j.data&&j.data.timestamp!==lastTS){lastTS=j.data.timestamp;update(j.data,j.risk);$('conn-dot').className='dot on pulse';$('conn-label').textContent='Live';}}catch(e){$('conn-dot').className='dot pulse';$('conn-label').textContent='Offline';}}
+async function loadHist(){try{const r=await fetch(HIST);const j=await r.json();if(j.data&&j.data.length>0){const riskR=await fetch(RISK);const riskJ=await riskR.json();update(j.data[j.data.length-1],riskJ.data);j.data.slice(-20).forEach(d=>{const t=new Date(d.timestamp).toLocaleTimeString();const e=document.createElement('div');e.className='log-entry';const m=d.moisture||0;e.innerHTML=`<span class="log-t">${t}</span><span class="log-v ${d.status}">${d.tilt.toFixed(2)}° M:${m.toFixed(0)}% ${d.status==='danger'?'🔴':d.status==='warning'?'🟡':'🟢'}</span>`;$('log-wrap').appendChild(e);});}}catch(e){}}
+loadHist();setInterval(poll,1000);
 
-  function startContinuousVibrate() {
-    if (vibInterval) return;
-    vibInterval = setInterval(() => {
-      if (navigator.vibrate) navigator.vibrate([400, 100, 400, 100, 400]);
-    }, 1500);
-    if (navigator.vibrate) navigator.vibrate([400, 100, 400, 100, 400]);
-  }
-  function stopContinuousVibrate() {
-    if (vibInterval) { clearInterval(vibInterval); vibInterval = null; }
-    if (navigator.vibrate) navigator.vibrate(0);
-  }
+// ===== GIS MAP TAB =====
+let gisMapReady=false,gisMap=null;
+function initGISMap(){
+  if(gisMapReady)return;gisMapReady=true;
+  gisMap=L.map('gis-map',{zoomControl:true,attributionControl:false}).setView([25.5,91.9],7);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxZoom:16}).addTo(gisMap);
+  // Corridors
+  const corridors=[
+    {name:'Guwahati–Shillong',coords:[[26.14,91.74],[25.85,91.88],[25.57,91.89]],color:'#6FA97D'},
+    {name:'Dimapur–Kohima',coords:[[25.90,93.73],[25.67,94.11]],color:'#6C8B9E'},
+    {name:'Silchar–Imphal',coords:[[24.83,92.80],[24.81,93.50],[24.81,93.94]],color:'#D69A4E'}
+  ];
+  corridors.forEach(c=>{L.polyline(c.coords,{color:c.color,weight:3,opacity:0.7,dashArray:'8,6'}).addTo(gisMap).bindPopup(`<b>${c.name}</b>`);});
+  // Hazard badges
+  const hazards=[
+    {lat:25.57,lng:91.89,score:68,label:'HIG'},
+    {lat:25.15,lng:92.85,score:48,label:'MOD'},
+    {lat:24.81,lng:93.94,score:58,label:'MOD'}
+  ];
+  hazards.forEach(h=>{
+    const c=h.score>=60?'#C25B45':'#D69A4E';
+    L.marker([h.lat,h.lng],{icon:L.divIcon({className:'',html:`<div style="background:${c};color:#fff;font-family:'JetBrains Mono';font-size:9px;font-weight:700;padding:3px 6px;border-radius:6px;white-space:nowrap;">${h.label} ${h.score}</div>`,iconSize:[50,20]})}).addTo(gisMap);
+  });
+}
 
-  function toggleSiren() {
-    sirenOn = !sirenOn;
-    $('siren-btn').classList.toggle('on', sirenOn);
-    $('siren-state').textContent = sirenOn ? 'On' : 'Off';
-    if (sirenOn) { initAudio(); if (lastStatus !== 'safe') startSiren(); }
-    else stopSiren();
-  }
-  function toggleVibrate() {
-    vibOn = !vibOn;
-    $('vib-btn').classList.toggle('on', vibOn);
-    $('vib-state').textContent = vibOn ? 'On' : 'Off';
-    if (vibOn) { navigator.vibrate && navigator.vibrate(200); if (lastStatus === 'danger') startContinuousVibrate(); }
-    else stopContinuousVibrate();
-  }
+// ===== STATIONS TAB =====
+const stations=[
+  {name:'Gangtok — 32nd Mile NH10 Corridor',loc:'East Sikkim, Sikkim',id:'ESP32-NER-001',score:72,level:'HIGH',rain:78.4,moisture:73.2,tilt:1.12,slope:42.5},
+  {name:'Haflong — Jatinga Valley Escarpment',loc:'Dima Hasao, Assam',id:'ESP32-NER-002',score:48,level:'MODERATE',rain:38.0,moisture:58.4,tilt:0.28,slope:38.0},
+  {name:'Cherrapunji — Shella Gorge Rim',loc:'East Khasi Hills, Meghalaya',id:'ESP32-NER-003',score:68,level:'HIGH',rain:112.0,moisture:82.0,tilt:0.72,slope:48.0},
+  {name:'Tupul — Ijei River Rail Corridor',loc:'Noney, Manipur',id:'ESP32-NER-007',score:58,level:'MODERATE',rain:52.0,moisture:65.0,tilt:0.42,slope:46.8}
+];
+function renderStations(){
+  const el=$('tab-stations');
+  el.innerHTML='<div class="card-title" style="margin:16px 16px 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21l4-13 4 13"/><path d="M2 21h20"/></svg>Monitored Stations (NER)<span class="line"></span></div>';
+  stations.forEach(s=>{
+    const bc=s.score>=65?'high':s.score>=45?'moderate':'low';
+    el.innerHTML+=`<div class="station-card"><div class="station-head"><div class="station-name">${s.name}</div><div class="station-badge ${bc}">${s.score} • ${s.level}</div></div><div class="station-meta">${s.loc} • ${s.id} • Online</div><div class="station-grid"><div class="sg-item"><div class="sg-val">${s.rain}</div><div class="sg-label">Rain mm</div></div><div class="sg-item"><div class="sg-val">${s.moisture}%</div><div class="sg-label">Moisture</div></div><div class="sg-item"><div class="sg-val">${s.tilt}°</div><div class="sg-label">Tilt Δθ</div></div><div class="sg-item"><div class="sg-val">${s.slope}°</div><div class="sg-label">Slope</div></div></div></div>`;
+  });
+}
+renderStations();
 
-  // ---- Map (North Eastern India) ----
-  const map = L.map('map', { zoomControl: true, attributionControl: false }).setView([25.5, 91.9], 7);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 }).addTo(map);
+// ===== ALERTS TAB =====
+function renderAlerts(){
+  const el=$('tab-alerts');
+  el.innerHTML=`
+    <div class="segment-tabs"><div class="seg-tab active" onclick="showAlertTab('active',this)">Active Alerts (2)</div><div class="seg-tab" onclick="showAlertTab('history',this)">Historical Logs (2)</div></div>
+    <div id="alerts-active">
+      <div class="alert-card"><div class="alert-title">🔴 HIGH HAZARD — Gangtok 32nd Mile NH10</div><div class="alert-body">Soil saturation at 73.2% with active inclinometer creep (+1.12°). 78.4mm rainfall in 24h. Risk increased from 54 to 72.</div><div class="alert-time">2 hours ago</div></div>
+      <div class="alert-card"><div class="alert-title">🔴 HIGH HAZARD — Cherrapunji Shella Gorge Rim</div><div class="alert-body">Extreme pluvial runoff (112mm/24h) triggering high pore saturation on 48° karst cliff face. Monitor closely.</div><div class="alert-time">4 hours ago</div></div>
+    </div>
+    <div id="alerts-history" style="display:none;">
+      <div class="alert-card warn"><div class="alert-title">🟡 MODERATE — Haflong Jatinga Valley</div><div class="alert-body">Elevated moisture (58.4%) detected. Tilt stable at 0.28°. No immediate threat.</div><div class="alert-time">1 day ago</div></div>
+      <div class="alert-card info"><div class="alert-title">ℹ️ INFO — Tupul Rail Corridor</div><div class="alert-body">Weather alert issued for heavy rainfall in Noney district. Monitoring intensified.</div><div class="alert-time">2 days ago</div></div>
+    </div>`;
+}
+function showAlertTab(tab,el){
+  el.parentElement.querySelectorAll('.seg-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  $('alerts-active').style.display=tab==='active'?'block':'none';
+  $('alerts-history').style.display=tab==='history'?'block':'none';
+}
+renderAlerts();
 
-  let sensorMarker = null, riskCircle = null, neighborMarkersAdded = false;
-
-  function updateMap(lat, lng, riskScore, status) {
-    const color = status === 'danger' ? '#C25B45' : status === 'warning' ? '#D69A4E' : '#6FA97D';
-    if (!sensorMarker) {
-      sensorMarker = L.circleMarker([lat, lng], {
-        radius: 8, fillColor: color, color: '#ECEFE9', weight: 2, fillOpacity: 0.8
-      }).addTo(map).bindPopup('<b>Landsafe Sensor</b><br>sensor-001');
-    } else { sensorMarker.setStyle({ fillColor: color }); }
-    if (!riskCircle) {
-      riskCircle = L.circle([lat, lng], {
-        radius: 1000 + riskScore * 50, fillColor: color, color: color,
-        weight: 1, fillOpacity: 0.1 + riskScore * 0.003
-      }).addTo(map);
-    } else {
-      riskCircle.setStyle({ fillColor: color, color: color, fillOpacity: 0.1 + riskScore * 0.003 });
-      riskCircle.setRadius(1000 + riskScore * 50);
-    }
-    if (!neighborMarkersAdded) {
-      neighborMarkersAdded = true;
-      [[25.67,91.88],[25.45,92.10],[25.55,91.75],[25.35,91.95],[25.70,92.05],[25.50,91.60]].forEach(([nlat,nlng]) => {
-        const r = Math.max(0, riskScore + (Math.random()-0.5)*30);
-        const c = r >= 70 ? '#C25B45' : r >= 40 ? '#D69A4E' : '#6FA97D';
-        L.circleMarker([nlat,nlng], { radius:4, fillColor:c, color:c, weight:1, fillOpacity:0.5 }).addTo(map);
-      });
-    }
-  }
-
-  // ---- Update dashboard ----
-  function update(data, risk) {
-    const { tilt, moisture, status, device_id, timestamp } = data;
-    const m = moisture || 0;
-
-    // Gauge
-    const clamped = Math.max(-90, Math.min(90, tilt));
-    $('needle').style.transform = `translateX(-50%) rotate(${-(clamped/90)*90}deg)`;
-    $('tilt-val').textContent = `${tilt.toFixed(2)}°`;
-    $('tilt-val').className = `tilt-num ${status}`;
-    $('tilt-dev').textContent = `Device: ${device_id}`;
-
-    // Badge
-    $('badge').textContent = status.toUpperCase();
-    $('badge').className = `badge-pill ${status}`;
-
-    // Info
-    $('dev-id').textContent = device_id;
-    $('dev-status').textContent = status.toUpperCase();
-    $('dev-status').style.color = status==='danger'?'var(--rust)':status==='warning'?'var(--ochre)':'var(--moss)';
-    $('dev-time').textContent = new Date(timestamp).toLocaleTimeString();
-
-    // Moisture
-    $('moisture-val').textContent = `${m.toFixed(1)}%`;
-    $('moisture-val').style.color = m>=80?'var(--rust)':m>=60?'var(--ochre)':'var(--slate)';
-    const mBar = $('moisture-bar');
-    mBar.style.width = `${Math.max(4,m)}%`;
-    mBar.className = m>=80?'rust':m>=60?'ochre':'blue';
-
-    // Risk
-    if (risk) {
-      const rScore = risk.risk_score||0;
-      $('risk-level').textContent = risk.risk_level||'LOW';
-      $('risk-level').style.color = rScore>=70?'#C25B45':rScore>=40?'#D69A4E':rScore>=15?'#D69A4E':'#6FA97D';
-      $('risk-score').textContent = `${rScore.toFixed(0)}%`;
-      const rBar = $('risk-bar');
-      rBar.style.width = `${rScore}%`;
-      rBar.className = 'risk-bar-fill '+(rScore>=70?'critical':rScore>=40?'high':rScore>=15?'moderate':'low');
-      $('prediction-text').textContent = risk.prediction||'';
-      $('risk-trend').textContent = risk.trend||'stable';
-      $('risk-trend').style.color = risk.trend==='increasing'?'var(--rust)':risk.trend==='decreasing'?'var(--moss)':'var(--text-muted)';
-      const density = risk.water_density||1000;
-      $('water-density').textContent = `${density.toFixed(0)}`;
-      $('water-density').style.color = m>=80?'var(--rust)':m>=60?'var(--ochre)':'var(--slate)';
-      $('density-sub').textContent = 'kg/m³';
-      const dBar = $('density-bar');
-      dBar.style.width = `${Math.min(100,(density/2000)*100)}%`;
-      dBar.className = m>=80?'rust':m>=60?'ochre':'blue';
-    }
-
-    // Map
-    updateMap(25.5, 91.9, risk?risk.risk_score:0, status);
-
-    // Overlays
-    $('overlay').className = 'overlay';
-    $('alert-bar').className = 'alert-bar';
-    if (status==='danger') {
-      $('overlay').classList.add('red');
-      $('alert-bar').className = 'alert-bar red';
-      $('alert-bar').textContent = '⚠️ DANGER — GROUND SHIFT DETECTED';
-      if (sirenOn) startSiren();
-      if (vibOn) startContinuousVibrate();
-    } else if (status==='warning') {
-      $('overlay').classList.add('yellow');
-      $('alert-bar').className = 'alert-bar yellow';
-      $('alert-bar').textContent = '⚠ WARNING — TILT ANOMALY DETECTED';
-      if (lastStatus==='danger') stopContinuousVibrate();
-    } else { stopSiren(); stopContinuousVibrate(); }
-
-    // Log
-    const t = new Date(timestamp).toLocaleTimeString();
-    const entry = document.createElement('div');
-    entry.className = 'log-entry';
-    entry.innerHTML = `<span class="log-t">${t}</span><span class="log-v ${status}">${tilt.toFixed(2)}° M:${m.toFixed(0)}% ${status==='danger'?'🔴':status==='warning'?'🟡':'🟢'}</span>`;
-    $('log-wrap').insertBefore(entry, $('log-wrap').firstChild);
-    while ($('log-wrap').children.length > 50) $('log-wrap').removeChild($('log-wrap').lastChild);
-
-    lastStatus = status;
-  }
-
-  // ---- Poll ----
-  async function poll() {
-    try {
-      const r = await fetch(API);
-      const j = await r.json();
-      if (j.data && j.data.timestamp !== lastTS) {
-        lastTS = j.data.timestamp;
-        update(j.data, j.risk);
-        $('conn-dot').className = 'dot on pulse';
-        $('conn-label').textContent = 'Live';
-      }
-    } catch(e) {
-      $('conn-dot').className = 'dot pulse';
-      $('conn-label').textContent = 'Offline';
-    }
-  }
-
-  async function loadHist() {
-    try {
-      const r = await fetch(HIST);
-      const j = await r.json();
-      if (j.data && j.data.length > 0) {
-        const riskR = await fetch(RISK);
-        const riskJ = await riskR.json();
-        update(j.data[j.data.length-1], riskJ.data);
-        j.data.slice(-20).forEach(d => {
-          const t = new Date(d.timestamp).toLocaleTimeString();
-          const e = document.createElement('div');
-          e.className = 'log-entry';
-          const m = d.moisture||0;
-          e.innerHTML = `<span class="log-t">${t}</span><span class="log-v ${d.status}">${d.tilt.toFixed(2)}° M:${m.toFixed(0)}% ${d.status==='danger'?'🔴':d.status==='warning'?'🟡':'🟢'}</span>`;
-          $('log-wrap').appendChild(e);
-        });
-      }
-    } catch(e) {}
-  }
-
-  loadHist();
-  setInterval(poll, 1000);
+// ===== INCIDENT TAB =====
+function renderIncidents(){
+  const el=$('tab-incident');
+  el.innerHTML='<div class="card-title" style="margin:16px 16px 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Active Incidents<span class="line"></span></div>';
+  el.innerHTML+=`
+    <div class="incident-card">
+      <div class="incident-head"><div class="incident-name">Gangtok — 32nd Mile NH10 Corridor</div><div class="station-badge high">72 / 100 • HIGH</div></div>
+      <div class="incident-loc">East Sikkim, Sikkim • 42.5° Slope</div>
+      <div class="incident-summary">High 24h precipitation (78.4 mm) and soil saturation at 73.2% with active inclinometer creep (+1.12°).</div>
+      <div class="incident-telemetry"><div class="it-item"><div class="it-val">78.4mm</div><div class="it-label">Rainfall</div></div><div class="it-item"><div class="it-val">73.2%</div><div class="it-label">Moisture</div></div><div class="it-item"><div class="it-val">1.12°</div><div class="it-label">Tilt Δθ</div></div></div>
+      <div class="incident-btn" onclick="switchTab('stations',document.querySelectorAll('.nav-item')[2])">View Telemetry Diagnostics →</div>
+    </div>
+    <div class="incident-card">
+      <div class="incident-head"><div class="incident-name">Cherrapunji — Shella Gorge Rim</div><div class="station-badge high">68 / 100 • HIGH</div></div>
+      <div class="incident-loc">East Khasi Hills, Meghalaya • 48.0° Slope</div>
+      <div class="incident-summary">Extreme pluvial runoff (112mm / 24h) triggering high pore saturation on 48° karst cliff face.</div>
+      <div class="incident-telemetry"><div class="it-item"><div class="it-val">112.0mm</div><div class="it-label">Rainfall</div></div><div class="it-item"><div class="it-val">82.0%</div><div class="it-label">Moisture</div></div><div class="it-item"><div class="it-val">0.72°</div><div class="it-label">Tilt Δθ</div></div></div>
+      <div class="incident-btn" onclick="switchTab('stations',document.querySelectorAll('.nav-item')[2])">View Telemetry Diagnostics →</div>
+    </div>`;
+}
+renderIncidents();
 </script>
 </body>
 </html>
