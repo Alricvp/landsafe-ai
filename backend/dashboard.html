@@ -83,14 +83,14 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
 }
 .nav-item{
   display:flex;flex-direction:column;align-items:center;gap:3px;
-  cursor:pointer;padding:4px 12px;border-radius:10px;transition:0.2s;
-  min-width:56px;
+  cursor:pointer;padding:4px 8px;border-radius:10px;transition:0.2s;
+  min-width:48px;flex:1;
 }
 .nav-item:hover{background:var(--surface-2);}
 .nav-item.active{color:var(--moss);}
 .nav-item svg{width:18px;height:18px;color:var(--text-muted);transition:0.2s;}
 .nav-item.active svg{color:var(--moss);}
-.nav-item span{font-size:9px;color:var(--text-muted);font-family:var(--font-mono);letter-spacing:0.5px;}
+.nav-item span{font-size:8px;color:var(--text-muted);font-family:var(--font-mono);letter-spacing:0.3px;}
 .nav-item.active span{color:var(--moss);font-weight:600;}
 
 /* ===== TABS ===== */
@@ -241,6 +241,65 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
 .incident-btn{width:100%;padding:10px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);color:var(--text-secondary);font-size:12px;font-family:var(--font-mono);cursor:pointer;text-align:center;transition:0.2s;}
 .incident-btn:hover{border-color:var(--moss);color:var(--moss);}
 
+/* ===== REPORT TAB ===== */
+#tab-report{padding:16px;padding-bottom:70px;max-width:800px;margin:0 auto;}
+.report-form-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;}
+.report-form-title{font-family:var(--font-display);font-weight:600;font-size:15px;color:var(--text-primary);margin-bottom:4px;}
+.report-form-sub{font-size:11px;color:var(--text-muted);margin-bottom:16px;}
+.report-field{margin-bottom:14px;}
+.report-field label{display:block;font-size:10px;color:var(--text-muted);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.report-field input,.report-field textarea,.report-field select{width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text-primary);font-size:13px;font-family:var(--font-body);outline:none;transition:0.2s;}
+.report-field input:focus,.report-field textarea:focus,.report-field select:focus{border-color:var(--moss);}
+.report-field textarea{resize:vertical;min-height:70px;}
+.report-field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23656E61' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;cursor:pointer;}
+.report-field select option{background:var(--surface);color:var(--text-primary);}
+.severity-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;}
+.sev-btn{padding:10px 8px;border-radius:10px;border:2px solid var(--border);background:var(--surface-2);cursor:pointer;text-align:center;transition:0.2s;font-size:10px;font-family:var(--font-mono);color:var(--text-muted);}
+.sev-btn:hover{border-color:var(--border-strong);}
+.sev-btn.selected{font-weight:700;}
+.sev-btn.low.selected{border-color:var(--moss);background:var(--moss-dim);color:var(--moss);}
+.sev-btn.medium.selected{border-color:var(--ochre);background:var(--ochre-dim);color:var(--ochre);}
+.sev-btn.high.selected{border-color:var(--rust);background:var(--rust-dim);color:var(--rust);}
+.sev-btn.critical.selected{border-color:#ff3333;background:rgba(255,51,51,0.1);color:#ff3333;}
+.sev-btn .sev-icon{font-size:18px;margin-bottom:3px;}
+.photo-upload{border:2px dashed var(--border);border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:0.2s;position:relative;overflow:hidden;}
+.photo-upload:hover{border-color:var(--moss);}
+.photo-upload.has-photo{padding:0;border-style:solid;border-color:var(--moss);}
+.photo-upload img{width:100%;max-height:200px;object-fit:cover;border-radius:10px;}
+.photo-upload .upload-text{color:var(--text-muted);font-size:12px;}
+.photo-upload .upload-text svg{display:block;margin:0 auto 6px;width:24px;height:24px;color:var(--text-muted);}
+.photo-upload input{display:none;}
+.loc-btn{width:100%;padding:10px;border-radius:8px;background:var(--moss-dim);border:1px solid var(--moss);color:var(--moss);font-size:12px;font-family:var(--font-mono);cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:center;transition:0.2s;}
+.loc-btn:hover{background:var(--moss);color:var(--bg);}
+.loc-btn svg{width:14px;height:14px;}
+.loc-display{font-size:11px;color:var(--text-muted);font-family:var(--font-mono);margin-top:6px;text-align:center;}
+.submit-btn{width:100%;padding:12px;border-radius:10px;background:var(--moss);border:none;color:var(--bg);font-size:13px;font-family:var(--font-display);font-weight:600;cursor:pointer;transition:0.2s;letter-spacing:0.5px;}
+.submit-btn:hover{opacity:0.9;transform:translateY(-1px);}
+.submit-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+.submit-btn.success{background:var(--moss);}
+.submit-btn.error{background:var(--rust);}
+.report-count-badge{display:inline-flex;align-items:center;gap:5px;background:var(--surface-2);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-family:var(--font-mono);font-size:10px;color:var(--text-muted);margin-left:8px;}
+.report-count-badge .count{color:var(--moss);font-weight:700;}
+.report-list{margin-top:16px;}
+.report-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px;}
+.report-card-photo{width:100%;height:180px;object-fit:cover;background:var(--surface-2);}
+.report-card-body{padding:14px;}
+.report-card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.report-card-type{font-family:var(--font-display);font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px;}
+.report-severity-badge{font-family:var(--font-mono);font-size:9px;font-weight:700;padding:3px 8px;border-radius:8px;letter-spacing:0.5px;}
+.report-severity-badge.low{background:var(--moss-dim);color:var(--moss);border:1px solid var(--moss);}
+.report-severity-badge.medium{background:var(--ochre-dim);color:var(--ochre);border:1px solid var(--ochre);}
+.report-severity-badge.high{background:var(--rust-dim);color:var(--rust);border:1px solid var(--rust);}
+.report-severity-badge.critical{background:rgba(255,51,51,0.1);color:#ff3333;border:1px solid #ff3333;}
+.report-card-desc{font-size:12px;color:var(--text-secondary);line-height:1.5;margin-bottom:8px;}
+.report-card-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);font-family:var(--font-mono);}
+.report-verified{display:inline-flex;align-items:center;gap:3px;color:var(--moss);font-weight:600;}
+.empty-reports{text-align:center;padding:40px 20px;color:var(--text-muted);}
+.empty-reports svg{width:40px;height:40px;margin-bottom:12px;opacity:0.4;}
+.empty-reports p{font-size:13px;line-height:1.5;}
+.report-segment-tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:14px;}
+@media(max-width:500px){.severity-grid{grid-template-columns:1fr 1fr;}}
+
 /* ===== CHATBOT ===== */
 .chat-fab{position:fixed;bottom:80px;right:20px;z-index:60;width:48px;height:48px;border-radius:50%;background:var(--moss-dim);border:2px solid var(--moss);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:0.3s;box-shadow:0 4px 16px rgba(0,0,0,0.3);}
 .chat-fab:hover{transform:scale(1.08);}
@@ -386,6 +445,84 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
 <!-- ===== TAB: INCIDENT ===== -->
 <div id="tab-incident" class="tab-content"></div>
 
+<!-- ===== TAB: REPORT ===== -->
+<div id="tab-report" class="tab-content">
+  <div class="report-form-card">
+    <div class="report-form-title">📸 Submit Field Report</div>
+    <div class="report-form-sub">Report cracks, slope damage, blocked roads, or flooding with geo-tagged photos</div>
+    
+    <div class="report-field">
+      <label>Report Type</label>
+      <select id="report-type">
+        <option value="crack">🔨 Ground Crack / Wall Crack</option>
+        <option value="slope_damage">⛰️ Slope Damage / Erosion</option>
+        <option value="blocked_road">🚧 Blocked Road / Landslide Debris</option>
+        <option value="flooding">🌊 Flooding / Waterlogging</option>
+        <option value="rockfall">🪨 Rockfall / Debris Flow</option>
+        <option value="other">⚠️ Other Hazard</option>
+      </select>
+    </div>
+
+    <div class="report-field">
+      <label>Severity Level</label>
+      <div class="severity-grid">
+        <div class="sev-btn low selected" onclick="selectSeverity('low',this)"><div class="sev-icon">🟢</div>Low</div>
+        <div class="sev-btn medium" onclick="selectSeverity('medium',this)"><div class="sev-icon">🟡</div>Medium</div>
+        <div class="sev-btn high" onclick="selectSeverity('high',this)"><div class="sev-icon">🔴</div>High</div>
+        <div class="sev-btn critical" onclick="selectSeverity('critical',this)"><div class="sev-icon">🚨</div>Critical</div>
+      </div>
+    </div>
+
+    <div class="report-field">
+      <label>Photo (optional but recommended)</label>
+      <div class="photo-upload" id="photo-upload" onclick="document.getElementById('photo-input').click()">
+        <input type="file" id="photo-input" accept="image/*" capture="environment" onchange="handlePhoto(this)">
+        <div class="upload-text" id="upload-text">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          Tap to take photo or choose from gallery<br><span style="font-size:10px;color:var(--text-muted);">Geo-tagged automatically</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="report-field">
+      <label>Your Location</label>
+      <div class="loc-btn" onclick="getMyLocation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Detect My Location</div>
+      <div class="loc-display" id="loc-display">Location not set — tap above</div>
+    </div>
+
+    <div class="report-field">
+      <label>Description</label>
+      <textarea id="report-desc" placeholder="Describe what you see: crack width, direction of damage, affected area..."></textarea>
+    </div>
+
+    <div class="report-field">
+      <label>Your Name (optional)</label>
+      <input type="text" id="reporter-name" placeholder="Anonymous">
+    </div>
+
+    <button class="submit-btn" id="submit-btn" onclick="submitReport()">Submit Report</button>
+  </div>
+
+  <div class="report-segment-tabs">
+    <div class="seg-tab active" onclick="showReportView('all',this)">All Reports</div>
+    <div class="seg-tab" onclick="showReportView('map',this)">On Map</div>
+  </div>
+  
+  <div id="report-list-view">
+    <div class="report-list" id="report-list">
+      <div class="empty-reports">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+        <p>No field reports yet.<br>Be the first to report a hazard!</p>
+      </div>
+    </div>
+  </div>
+  <div id="report-map-view" style="display:none;">
+    <div style="height:400px;border-radius:14px;overflow:hidden;border:1px solid var(--border);">
+      <div id="report-map" style="height:100%;background:var(--surface-2);"></div>
+    </div>
+  </div>
+</div>
+
 <!-- CHATBOT FAB + PANEL -->
 <div class="chat-fab" onclick="toggleChat()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
 <div class="chat-panel" id="chat-panel">
@@ -418,6 +555,10 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
     <span>Incident</span>
   </div>
+  <div class="nav-item" onclick="switchTab('report',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>
+    <span>Report</span>
+  </div>
 </div>
 
 <script>
@@ -431,6 +572,7 @@ function switchTab(name, el){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   el.classList.add('active');
   if(name==='map'&&!gisMapReady) initGISMap();
+  if(name==='report')loadReports();
 }
 
 // ===== OVERVIEW: EXACT SAME JS AS BEFORE =====
@@ -663,6 +805,169 @@ function requestNotifPermission(){if(notifAsked)return;notifAsked=true;if('Notif
 document.addEventListener('click',requestNotifPermission,{once:true});
 document.addEventListener('touchstart',requestNotifPermission,{once:true});
 function sendBrowserNotif(title,body){try{if('Notification' in window && Notification.permission==='granted')new Notification(title,{body});}catch(e){}}
+
+// ===== CITIZEN REPORTING =====
+let selectedSeverity='low';
+let reportLat=null,reportLng=null;
+let reportPhotoData='';
+let reportMapReady=false,reportMap=null;
+let allReports=[];
+
+function selectSeverity(sev,el){
+  selectedSeverity=sev;
+  document.querySelectorAll('.sev-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function handlePhoto(input){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    reportPhotoData=e.target.result;
+    const upload=$('photo-upload');
+    upload.innerHTML=`<input type="file" id="photo-input" accept="image/*" capture="environment" onchange="handlePhoto(this)"><img src="${e.target.result}" alt="Report photo"><div class="upload-text" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.7);padding:4px 8px;border-radius:6px;font-size:10px;color:var(--text-primary);">Tap to change</div>`;
+    upload.classList.add('has-photo');
+  };
+  reader.readAsDataURL(file);
+}
+
+function getMyLocation(){
+  const btn=document.querySelector('.loc-btn');
+  btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;width:14px;height:14px;"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>Detecting...';
+  if(!navigator.geolocation){$('loc-display').textContent='Geolocation not supported';return;}
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      reportLat=pos.coords.latitude;
+      reportLng=pos.coords.longitude;
+      $('loc-display').textContent=`📍 ${reportLat.toFixed(4)}°N, ${reportLng.toFixed(4)}°E`;
+      btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>Location Detected!';
+      btn.style.borderColor='var(--moss)';
+    },
+    err=>{
+      $('loc-display').textContent='Location access denied — using NE India default';
+      reportLat=25.57;reportLng=91.89;
+      btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Use Default Location';
+    }
+  );
+}
+
+async function submitReport(){
+  const btn=$('submit-btn');
+  const type=$('report-type').value;
+  const desc=$('report-desc').value;
+  const name=$('reporter-name').value||'Anonymous';
+  const lat=reportLat||25.57;
+  const lng=reportLng||91.89;
+
+  btn.disabled=true;
+  btn.textContent='Submitting...';
+  btn.className='submit-btn';
+
+  try{
+    const res=await fetch(`${location.origin}/api/report`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        report_type:type,
+        severity:selectedSeverity,
+        lat:lat,
+        lng:lng,
+        description:desc,
+        reporter_name:name,
+        photo_data:reportPhotoData
+      })
+    });
+    const j=await res.json();
+    if(j.ok){
+      btn.textContent='✅ Report Submitted!';
+      btn.className='submit-btn success';
+      setTimeout(()=>{btn.textContent='Submit Report';btn.disabled=false;btn.className='submit-btn';},2000);
+      // Reset form
+      $('report-desc').value='';
+      $('report-photo-input')&&(document.getElementById('photo-input').value='');
+      reportPhotoData='';
+      // Reload reports
+      loadReports();
+    }
+  }catch(e){
+    btn.textContent='❌ Submission Failed';
+    btn.className='submit-btn error';
+    setTimeout(()=>{btn.textContent='Submit Report';btn.disabled=false;btn.className='submit-btn';},2000);
+  }
+}
+
+async function loadReports(){
+  try{
+    const res=await fetch(`${location.origin}/api/reports`);
+    const j=await res.json();
+    allReports=(j.data||[]).reverse();
+    renderReports();
+  }catch(e){}
+}
+
+function renderReports(){
+  const el=$('report-list');
+  if(allReports.length===0){
+    el.innerHTML='<div class="empty-reports"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg><p>No field reports yet.<br>Be the first to report a hazard!</p></div>';
+    return;
+  }
+  const typeIcons={crack:'🔨',slope_damage:'⛰️',blocked_road:'🚧',flooding:'🌊',rockfall:'🪨',other:'⚠️'};
+  const typeNames={crack:'Ground Crack',slope_damage:'Slope Damage',blocked_road:'Blocked Road',flooding:'Flooding',rockfall:'Rockfall',other:'Other Hazard'};
+  el.innerHTML=allReports.map(r=>{
+    const photo=r.photo_data?`<img class="report-card-photo" src="${r.photo_data}" alt="Report photo">`:'';
+    const time=new Date(r.timestamp).toLocaleString();
+    return `<div class="report-card">
+      ${photo}
+      <div class="report-card-body">
+        <div class="report-card-head">
+          <div class="report-card-type">${typeIcons[r.report_type]||'⚠️'} ${typeNames[r.report_type]||r.report_type}</div>
+          <div class="report-severity-badge ${r.severity}">${r.severity.toUpperCase()}</div>
+        </div>
+        ${r.description?`<div class="report-card-desc">${r.description}</div>`:''}
+        <div class="report-card-meta">
+          <span>📍 ${r.lat.toFixed(4)}°, ${r.lng.toFixed(4)}° • by ${r.reporter_name}</span>
+          <span>${time}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function showReportView(view,el){
+  el.parentElement.querySelectorAll('.seg-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  $('report-list-view').style.display=view==='all'?'block':'none';
+  $('report-map-view').style.display=view==='map'?'block':'none';
+  if(view==='map'&&!reportMapReady){
+    reportMapReady=true;
+    reportMap=L.map('report-map',{zoomControl:true,attributionControl:false}).setView([25.5,91.9],7);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxZoom:16}).addTo(reportMap);
+  }
+  if(reportMapReady)updateReportMap();
+}
+
+function updateReportMap(){
+  if(!reportMap)return;
+  // Clear existing report markers
+  reportMap.eachLayer(layer=>{if(layer._isReport)reportMap.removeLayer(layer);});
+  const typeIcons={crack:'🔨',slope_damage:'⛰️',blocked_road:'🚧',flooding:'🌊',rockfall:'🪨',other:'⚠️'};
+  const sevColors={low:'#6FA97D',medium:'#D69A4E',high:'#C25B45',critical:'#ff3333'};
+  allReports.forEach(r=>{
+    const c=sevColors[r.severity]||'#6FA97D';
+    const icon=L.divIcon({className:'',html:`<div style="background:${c};width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid #ECEFE9;box-shadow:0 2px 8px rgba(0,0,0,0.3);">${typeIcons[r.report_type]||'⚠️'}</div>`,iconSize:[28,28]});
+    const marker=L.marker([r.lat,r.lng],{icon}).addTo(reportMap);
+    marker._isReport=true;
+    marker.bindPopup(`<b>${typeIcons[r.report_type]} ${r.report_type.replace(/_/g,' ')}</b><br>Severity: <b style="color:${c}">${r.severity.toUpperCase()}</b><br>${r.description?r.description+'<br>':''}📍 ${r.lat.toFixed(4)}, ${r.lng.toFixed(4)}<br>By: ${r.reporter_name}<br>${new Date(r.timestamp).toLocaleString()}`);
+  });
+}
+
+// Load reports on startup and refresh every 60s
+loadReports();
+setInterval(loadReports,60000);
+
+// Add spin keyframe for loading
+document.head.insertAdjacentHTML('beforeend','<style>@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}</style>');
 
 // Trigger notification only on STATUS CHANGE (not every poll)
 function checkNotif(status,tilt,prevStatus){

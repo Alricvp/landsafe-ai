@@ -13,6 +13,8 @@ from datetime import datetime, timedelta
 import json
 import os
 import math
+import base64
+import uuid
 
 app = FastAPI(title="Landsafe AI", version="2.0.0")
 
@@ -27,6 +29,8 @@ app.add_middleware(
 # ---- In-memory store (last 500 readings) ----
 sensor_data = []
 MAX_READINGS = 500
+citizen_reports = []
+MAX_REPORTS = 200
 
 # ---- Connected WebSocket clients ----
 connected_clients: list[WebSocket] = []
@@ -38,6 +42,16 @@ class TiltReading(BaseModel):
     status: str
     ip: str = ""
     moisture: float = 0.0
+
+# ---- Citizen report data model ----
+class CitizenReport(BaseModel):
+    report_type: str  # crack, slope_damage, blocked_road, flooding, other
+    severity: str     # low, medium, high, critical
+    lat: float
+    lng: float
+    description: str = ""
+    reporter_name: str = "Anonymous"
+    photo_data: str = ""  # base64 encoded image
 
 
 # ---- Helper: calculate landslide risk ----
@@ -177,10 +191,53 @@ async def get_risk():
     return {"data": risk}
 
 
+# ---- Citizen Reports API ----
+@app.post("/api/report")
+async def submit_report(report: CitizenReport):
+    entry = {
+        "id": str(uuid.uuid4())[:8],
+        "report_type": report.report_type,
+        "severity": report.severity,
+        "lat": report.lat,
+        "lng": report.lng,
+        "description": report.description,
+        "reporter_name": report.reporter_name,
+        "photo_data": report.photo_data,
+        "timestamp": datetime.now().isoformat(),
+        "verified": False,
+    }
+    citizen_reports.append(entry)
+    if len(citizen_reports) > MAX_REPORTS:
+        citizen_reports.pop(0)
+
+    # Broadcast to dashboard clients
+    message = json.dumps({"type": "report", "data": entry})
+    disconnected = []
+    for client in connected_clients:
+        try:
+            await client.send_text(message)
+        except:
+            disconnected.append(client)
+    for client in disconnected:
+        connected_clients.remove(client)
+
+    return {"ok": True, "report_id": entry["id"]}
+
+
+@app.get("/api/reports")
+async def get_reports():
+    return {"data": citizen_reports}
+
+
+@app.get("/api/reports/count")
+async def get_report_count():
+    return {"total": len(citizen_reports), "critical": sum(1 for r in citizen_reports if r["severity"] == "critical"), "high": sum(1 for r in citizen_reports if r["severity"] == "high")}
+
+
 # ---- Health check ----
 @app.get("/health")
 async def health():
-    return {"status": "ok", "readings": len(sensor_data)}
+    return {"status": "ok", "readings": len(sensor_data), "reports": len(citizen_reports)}
 
 
 # ---- WebSocket for real-time dashboard updates ----
