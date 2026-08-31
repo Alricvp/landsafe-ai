@@ -61,6 +61,7 @@ class SMSAlert(BaseModel):
     severity: str = "info"
 
 
+
 # ---- Helper: calculate landslide risk ----
 def calculate_risk(readings):
     """Calculate landslide risk based on recent tilt + moisture data."""
@@ -249,37 +250,44 @@ async def register_sms(alert: SMSAlert):
     """Register phone number for SMS alerts."""
     if alert.phone not in sms_recipients:
         sms_recipients.append(alert.phone)
-    return {"ok": True, "message": f"Phone {alert.phone} registered for alerts", "total_recipients": len(sms_recipients)}
+    return {"ok": True, "message": f"Phone {alert.phone} registered for SMS alerts (TextBelt)", "total_recipients": len(sms_recipients)}
 
 @app.post("/api/sms/send")
 async def send_sms(alert: SMSAlert):
-    """Send SMS via MSG91 or fallback. Stores recipients for future alerts."""
-    # Always store the recipient
+    """Send SMS via TextBelt (free, no signup). 1 SMS/day on free tier."""
     if alert.phone not in sms_recipients:
         sms_recipients.append(alert.phone)
     
-    # Try sending via free SMS API (MSG91 free tier)
-    msg91_key = os.getenv("MSG91_API_KEY", "")
-    if msg91_key:
-        try:
-            data = json.dumps({
-                "flow_id": os.getenv("MSG91_FLOW_ID", ""),
-                "mobiles": f"91{alert.phone}",
-                "VAR1": alert.message[:160],
-            }).encode()
-            req = urllib.request.Request(
-                f"https://api.msg91.com/api/v5/flow/{os.getenv('MSG91_FLOW_ID', '')}",
-                data=data,
-                headers={"Content-Type": "application/json", "authkey": msg91_key}
-            )
-            urllib.request.urlopen(req, timeout=5)
-            return {"ok": True, "sent": True, "via": "MSG91"}
-        except Exception as e:
-            pass
+    # Format phone for India
+    phone = alert.phone.strip()
+    if not phone.startswith("+"):
+        if phone.startswith("0"):
+            phone = "+91" + phone[1:]
+        elif len(phone) == 10:
+            phone = "+91" + phone
+        else:
+            phone = "+" + phone
     
-    # Fallback — log the SMS (for demo/development)
-    print(f"[SMS] To: {alert.phone} | {alert.message}")
-    return {"ok": True, "sent": False, "via": "demo_mode", "note": "SMS logged to console. Add MSG91_API_KEY env var for real SMS."}
+    try:
+        data = urllib.parse.urlencode({
+            "phone": phone,
+            "message": alert.message[:160],
+            "key": "textbelt",  # Free tier key
+        }).encode()
+        req = urllib.request.Request(
+            "https://textbelt.com/sms",
+            data=data,
+            headers={"Content-Type": "application/x-www-form-urlencoded"}
+        )
+        resp = urllib.request.urlopen(req, timeout=10)
+        result = json.loads(resp.read().decode())
+        if result.get("success"):
+            return {"ok": True, "sent": True, "via": "TextBelt", "quota_remaining": result.get("quotaRemaining", "?")}
+        else:
+            return {"ok": True, "sent": False, "via": "TextBelt", "error": result.get("error", "unknown")}
+    except Exception as e:
+        print(f"[SMS] To: {phone} | {alert.message}")
+        return {"ok": True, "sent": False, "via": "fallback", "note": f"TextBelt error: {e}. Free tier allows 1 SMS/day."}
 
 @app.get("/api/sms/recipients")
 async def get_sms_recipients():
