@@ -427,7 +427,7 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
     <div class="ov-left">
       <div class="risk-card">
         <div class="risk-top">
-          <div><div class="risk-label">Landslide risk</div><div class="risk-value" id="risk-level">Low</div></div>
+          <div><div class="risk-label" data-i18n="landing_risk">Landslide risk</div><div class="risk-value" id="risk-level">Low</div></div>
           <div class="risk-badge-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11z"/></svg></div>
         </div>
         <div class="risk-bar-bg"><div class="risk-bar-fill low" id="risk-bar" style="width:0%"></div></div>
@@ -438,18 +438,18 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
         <div class="gauge-wrap"><div class="gauge-arc"><div class="gauge-zone gz-green"></div><div class="gauge-zone gz-yellow"></div><div class="gauge-zone gz-red"></div><div class="needle" id="needle"></div><div class="needle-dot"></div></div></div>
         <div class="gauge-labels"><span>0°</span><span>30° warn</span><span>60° danger</span></div>
         <div class="tilt-num safe" id="tilt-val">0.00°</div>
-        <div class="tilt-unit">Tilt Angle</div>
+        <div class="tilt-unit" data-i18n="tilt_angle">Tilt Angle</div>
         <div class="tilt-dev" id="tilt-dev">Waiting for sensor data…</div>
       </div>
       <div class="row-2">
         <div class="card">
-          <div class="stat-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8 8 5 11.5 5 15a7 7 0 0014 0c0-3.5-3-7-7-13z"/></svg>Soil moisture</div>
+          <div class="stat-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8 8 5 11.5 5 15a7 7 0 0014 0c0-3.5-3-7-7-13z"/></svg><span data-i18n="soil_moisture">Soil moisture</span></div>
           <div class="stat-val" id="moisture-val" style="color:var(--slate);">0%</div>
           <div class="stat-bar"><i class="blue" id="moisture-bar" style="width:4%"></i></div>
-          <div class="stat-foot"><span>Dry</span><span>Saturated</span></div>
+          <div class="stat-foot"><span data-i18n="dry">Dry</span><span data-i18n="saturated">Saturated</span></div>
         </div>
         <div class="card">
-          <div class="stat-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l4-4 3 3 5-6"/></svg>Density</div>
+          <div class="stat-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l4-4 3 3 5-6"/></svg><span data-i18n="density">Density</span></div>
           <div class="stat-val" id="water-density" style="color:var(--slate);">—</div>
           <div class="stat-bar"><i class="blue" id="density-bar" style="width:0%"></i></div>
           <div class="stat-foot"><span>kg/m³</span><span id="density-sub">—</span></div>
@@ -458,29 +458,29 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
     </div>
     <div class="ov-sidebar">
       <div class="card">
-        <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>Sensor info<span class="line"></span></div>
+        <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg><span data-i18n="sensor_info">Sensor info</span><span class="line"></span></div>
         <div class="info-row"><span class="info-l">Device</span><span class="info-v" id="dev-id">—</span></div>
         <div class="info-row"><span class="info-l">Status</span><span class="info-v" id="dev-status">—</span></div>
         <div class="info-row"><span class="info-l">Last update</span><span class="info-v" id="dev-time">—</span></div>
       </div>
       <div class="card">
-        <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>Alert controls<span class="line"></span></div>
+        <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg><span data-i18n="alert_controls">Alert controls</span><span class="line"></span></div>
         <div class="toggle-row" id="siren-btn" onclick="toggleSiren()" style="margin-bottom:8px;">
-          <div class="toggle-left"><div class="toggle-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6"/></svg></div><div><div class="toggle-title">Siren</div><div class="toggle-state" id="siren-state">Off</div></div></div>
+          <div class="toggle-left"><div class="toggle-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6"/></svg></div><div><div class="toggle-title" data-i18n="siren">Siren</div><div class="toggle-state" id="siren-state">Off</div></div></div>
           <div class="switch"><i id="siren-dot"></i></div>
         </div>
         <div class="toggle-row" id="vib-btn" onclick="toggleVibrate()">
-          <div class="toggle-left"><div class="toggle-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></div><div><div class="toggle-title">Vibrate</div><div class="toggle-state" id="vib-state">Off</div></div></div>
+          <div class="toggle-left"><div class="toggle-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></div><div><div class="toggle-title" data-i18n="vibrate">Vibrate</div><div class="toggle-state" id="vib-state">Off</div></div></div>
           <div class="switch"><i id="vib-dot"></i></div>
         </div>
       </div>
       <div class="card">
-        <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l4-6 4 3 5-8"/></svg>Live log<span class="line"></span></div>
+        <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l4-6 4 3 5-8"/></svg><span data-i18n="live_log">Live log</span><span class="line"></span></div>
         <div class="log-wrap" id="log-wrap"><div class="log-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Waiting for data</div></div>
       </div>
       <div class="card">
-        <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>SMS Alerts<span class="line"></span></div>
-        <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;">Register phone to receive SMS on danger</div>
+        <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg><span data-i18n="sms_title">SMS Alerts</span><span class="line"></span></div>
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;"><span data-i18n="sms_sub">Register phone to receive SMS on danger</span></div>
         <div class="sms-row">
           <input class="sms-input" id="sms-phone" placeholder="9876543210" maxlength="10">
           <button class="sms-btn" onclick="registerSMS()">Register</button>
@@ -512,7 +512,7 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
 
 <!-- ===== TAB: HISTORY ===== -->
 <div id="tab-history" class="tab-content">
-  <div class="card-title" style="margin:16px 16px 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Historical Landslide Data — NER<span class="line"></span></div>
+  <div class="card-title" style="margin:16px 16px 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span data-i18n="history_title">Historical Landslide Data — NER</span><span class="line"></span></div>
   <div class="hist-summary" id="hist-summary"></div>
   <div class="hist-chart"><div class="hist-chart-title">Incidents by Year</div><div class="bar-chart" id="bar-chart"></div></div>
   <div class="hist-chart"><div class="hist-chart-title">Casualties by State</div><div class="bar-chart" id="state-chart"></div></div>
@@ -615,31 +615,31 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
 <div class="bottom-nav">
   <div class="nav-item active" onclick="switchTab('overview',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-    <span>Overview</span>
+    <span data-i18n="nav_overview">Overview</span>
   </div>
   <div class="nav-item" onclick="switchTab('map',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4z"/><path d="M8 2v16M16 6v16"/></svg>
-    <span>GIS Map</span>
+    <span data-i18n="nav_map">GIS Map</span>
   </div>
   <div class="nav-item" onclick="switchTab('stations',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21l4-13 4 13"/><path d="M2 21h20"/></svg>
-    <span>Stations</span>
+    <span data-i18n="nav_stations">Stations</span>
   </div>
   <div class="nav-item" onclick="switchTab('alerts',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
-    <span>Alerts</span>
+    <span data-i18n="nav_alerts">Alerts</span>
   </div>
   <div class="nav-item" onclick="switchTab('incident',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-    <span>Incident</span>
+    <span data-i18n="nav_incident">Incident</span>
   </div>
   <div class="nav-item" onclick="switchTab('report',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>
-    <span>Report</span>
+    <span data-i18n="nav_report">Report</span>
   </div>
   <div class="nav-item" onclick="switchTab('history',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-    <span>History</span>
+    <span data-i18n="nav_history">History</span>
   </div>
 </div>
 
@@ -1066,11 +1066,11 @@ const LANG_NAMES={en:'EN',hi:'HI',as:'AS',bn:'BN',mni:'MN'};
 const LANG_FONTS={en:'var(--font-body)',hi:"'Noto Sans Devanagari',sans-serif",as:"'Noto Sans Bengali',sans-serif",bn:"'Noto Sans Bengali',sans-serif",mni:"'Noto Sans Meetei Mayek',sans-serif"};
 let currentLang='en';
 const T={
-  en:{landing_risk:'Landslide risk',tilt_angle:'Tilt Angle',soil_moisture:'Soil moisture',density:'Density',sensor_info:'Sensor info',alert_controls:'Alert controls',siren:'Siren',vibrate:'Vibrate',live_log:'Live log',waiting:'Waiting for data',offline_msg:'Sensor disconnected',dry:'Dry',saturated:'Saturated',trend:'Trend',stable:'stable',increasing:'increasing',decreasing:'decreasing',connecting:'Connecting',live:'Live',offline:'Offline',safe:'SAFE',warning:'WARNING',danger:'DANGER',sms_title:'SMS Alerts',sms_sub:'Register phone to receive SMS on danger',sms_placeholder:'9876543210',sms_register:'Register',sms_registered:'Registered',history_title:'Historical Landslide Data — NER',incidents_by_year:'Incidents by Year',casualties_by_state:'Casualties by State',incident_timeline:'Incident Timeline',total_incidents:'Total Incidents',total_deaths:'Total Deaths',years_covered:'Years Covered',report_title:'Submit Field Report',report_sub:'Report cracks, slope damage, blocked roads, or flooding with geo-tagged photos',report_type:'Report Type',severity:'Severity Level',photo:'Photo (optional)',tap_photo:'Tap to take photo or choose from gallery',your_location:'Your Location',detect_location:'Detect My Location',description:'Description',your_name:'Your Name (optional)',submit:'Submit Report',all_reports:'All Reports',on_map:'On Map',no_reports:'No field reports yet. Be the first to report a hazard!'},
-  hi:{landing_risk:'भूस्खलन जोखिम',tilt_angle:'झुकाव कोण',soil_moisture:'मिट्टी की नमी',density:'घनत्व',sensor_info:'सेंसर जानकारी',alert_controls:'अलर्ट नियंत्रण',siren:'सायरन',vibrate:'वाइब्रेट',live_log:'लाइव लॉग',waiting:'डेटा की प्रतीक्षा है',offline_msg:'सेंसर डिस्कनेक्ट',dry:'सूखी',saturated:'संतृप्त',trend:'प्रवृत्ति',stable:'स्थिर',increasing:'बढ़ रही',decreasing:'घट रही',connecting:'कनेक्ट हो रहा है',live:'लाइव',offline:'ऑफलाइन',safe:'सुरक्षित',warning:'चेतावनी',danger:'खतरा',sms_title:'SMS अलर्ट',sms_sub:'खतरे पर SMS प्राप्त करने के लिए फोन नंबर दर्ज करें',sms_placeholder:'9876543210',sms_register:'रजिस्टर',sms_registered:'दर्ज',history_title:'ऐतिहासिक भूस्खलन डेटा — NER',incidents_by_year:'वर्ष अनुसार घटनाएं',casualties_by_state:'राज्य अनुसार हताहत',incident_timeline:'घटना समयरेखा',total_incidents:'कुल घटनाएं',total_deaths:'कुल मौतें',years_covered:'वर्ष कवरेज',report_title:'फील्ड रिपोर्ट जमा करें',report_sub:'भूस्खलन, दरार, बंद सड़क, या बाढ़ की रिपोर्ट करें',report_type:'रिपोर्ट प्रकार',severity:'गंभीरता स्तर',photo:'फोटो (वैकल्पिक)',tap_photo:'फोटो लेने के लिए टैप करें',your_location:'आपका स्थान',detect_location:'स्थान पता करें',description:'विवरण',your_name:'आपका नाम (वैकल्पिक)',submit:'रिपोर्ट जमा करें',all_reports:'सभी रिपोर्ट',on_map:'मानचित्र पर',no_reports:'अभी तक कोई रिपोर्ट नहीं। पहली रिपोर्ट दर्ज करें!'},
-  as:{landing_risk:'ভূমিধসৰ বিপদ',tilt_angle:'ঢাল কোণ',soil_moisture:'মাটীৰ আৰ্দ্ৰতা',density:'ঘনত্ব',sensor_info:'ছেন্সৰ তথ্য',alert_controls:'সতৰ্কতা নিয়ন্ত্ৰণ',siren:'ছাইৰেন',vibrate:'কম্পন',live_log:'লাইভ লগ',waiting:'ডাটাৰ অপেক্ষাত',offline_msg:'ছেন্সৰ সংযোগ বিচ্ছিন্ন',dry:'শুকনা',saturated:'পৰিপূৰ্ণ',trend:'প্ৰৱণতা',stable:'স্থিৰ',increasing:'বৃদ্ধি পাই আছে',decreasing:'হ্ৰাস পাই আছে',connecting:'সংযোগ কৰি আছে',live:'লাইভ',offline:'অফলাইন',safe:'নিৰাপদ',warning:'সতৰ্কতা',danger:'বিপদ',sms_title:'SMS সতৰ্কতা',sms_sub:'বিপদত SMS পাবলৈ ফোন নম্বৰ দিয়ক',sms_placeholder:'9876543210',sms_register:'ৰেজিষ্টাৰ',sms_registered:'ৰেজিষ্টাৰ্ড',history_title:'ঐতিহাসিক ভূমিধসৰ ডাটা — NER',incidents_by_year:'বছৰ অনুযায়ী ঘটনা',casualties_by_state:'ৰাজ্য অনুযায়ী ক্ষতিগ্ৰস্ত',incident_timeline:'ঘটনাৰ সময়ৰেখা',total_incidents:'মুঠ ঘটনা',total_deaths:'মুঠ মৃত্যু',years_covered:'বছৰ পৰিসীমা',report_title:'ফিল্ড প্ৰতিবেদন দিয়ক',report_sub:'ভূমিধস, ফাটল, বন্ধ ৰাস্তাৰ প্ৰতিবেদন দিয়ক',report_type:'প্ৰতিবেদন প্ৰকাৰ',severity:'গুৰুতৱ স্তৰ',photo:'ফটো (ঐচ্ছিক)',tap_photo:'ফটো লিবলৈ টেপ কৰক',your_location:'আপোনাৰ স্থান',detect_location:'স্থান নিৰ্ধাৰণ কৰক',description:'বিৱৰণ',your_name:'আপোনাৰ নাম (ঐচ্ছিক)',submit:'প্ৰতিবেদন দিয়ক',all_reports:'সকলো প্ৰতিবেদন',on_map:'মানচিত্ৰত',no_reports:'এতিয়াও কোনো প্ৰতিবেদন নাই!'},
-  bn:{landing_risk:'ভূমিধ্বসের ঝুঁকি',tilt_angle:'ঢাল কোণ',soil_moisture:'মাটির আর্দ্রতা',density:'ঘনত্ব',sensor_info:'সেন্সর তথ্য',alert_controls:'সতর্কতা নিয়ন্ত্রণ',siren:'সাইরেন',vibrate:'কম্পন',live_log:'লাইভ লগ',waiting:'ডাটার অপেক্ষায়',offline_msg:'সেন্সর সংযোগ বিচ্ছিন্ন',dry:'শুকনো',saturated:'পরিপূর্ণ',trend:'প্রবণতা',stable:'স্থির',increasing:'বৃদ্ধি পাচ্ছে',decreasing:'হ্রাস পাচ্ছে',connecting:'সংযোগ হচ্ছে',live:'লাইভ',offline:'অফলাইন',safe:'নিরাপদ',warning:'সতর্কতা',danger:'বিপদ',sms_title:'SMS সতর্কতা',sms_sub:'বিপদে SMS পেতে ফোন নম্বর দিন',sms_placeholder:'9876543210',sms_register:'নিবন্ধন',sms_registered:'নিবন্ধিত',history_title:'ঐতিহাসিক ভূমিধ্বসের ডাটা — NER',incidents_by_year:'বছর অনুযায়ী ঘটনা',casualties_by_state:'রাজ্য অনুযায়ী ক্ষতিগ্রস্ত',incident_timeline:'ঘটনার সময়রেখা',total_incidents:'মোট ঘটনা',total_deaths:'মোট মৃত্যু',years_covered:'বছর পরিসীমা',report_title:'ফিল্ড রিপোর্ট জমা দিন',report_sub:'ভূমিধ্বস, ফাটল, বন্ধ রাস্তার রিপোর্ট দিন',report_type:'রিপোর্ট প্রকার',severity:'গুরুত্ব স্তর',photo:'ছবি (ঐচ্ছিক)',tap_photo:'ছবি তুলতে ট্যাপ করুন',your_location:'আপনার অবস্থান',detect_location:'অবস্থান সনাক্ত করুন',description:'বিবরণ',your_name:'আপনার নাম (ঐচ্ছিক)',submit:'রিপোর্ট জমা দিন',all_reports:'সব রিপোর্ট',on_map:'মানচিত্রে',no_reports:'এখনো কোনো রিপোর্ট নেই!'},
-  mni:{landing_risk:'মাংল থিগাদা পাংদা',tilt_angle:'থিদোক কোণ',soil_moisture:'মাং চিং',density:'ঘনত্ব',sensor_info:'ছেন্সর পীরি',alert_controls:'ইশারা কন্ত্রোল',siren:'ছাইৰেন',vibrate:'ফুগাদবা',live_log:'লাইভ লগ',waiting:'দাতা যাইরে',offline_msg:'ছেন্সর সিং',dry:'ইয়েক্তা',saturated:'ইয়েক্তা',trend:'যাগাই',stable:'ইয়েক্তা',increasing:'যাগাই',decreasing:'যাগাই',connecting:'মশক তুনাইরে',live:'লাইভ',offline:'অফলাইন',safe:'শান্তি',warning:'ইশারা',danger:'মহুত',sms_title:'SMS ইশারা',sms_sub:'মহুত SMS লৈবা ফোন নম্বর দিয়ো',sms_placeholder:'9876543210',sms_register:'দিয়ো',sms_registered:'দিয়ে',history_title:'যাইরে মাংল থিগাদা পাংদা — NER',incidents_by_year:'চিং অনুযায়ী',casualties_by_state:'লাই অনুযায়ী',incident_timeline:'ঘটনা সময়',total_incidents:'লীবা ঘটনা',total_deaths:'লীবা মথৌ',years_covered:'চিং পীরি',report_title:'ফিল্ড রিপোর্ট',report_sub:'মাংল থিগাদা, ফাটল, বন্ধ রাস্তা দিয়ো',report_type:'রিপোর্ট প্রকার',severity:'গুরুত্ব',photo:'ফোটো (যাইরে)',tap_photo:'ফোটো লৈবা ট্যাপ দিয়ো',your_location:'মসি লাই',detect_location:'লাই খোঁজে',description:'পীরি',your_name:'মসি মিং (যাইরে)',submit:'রিপোর্ট দিয়ো',all_reports:'লীবা রিপোর্ট',on_map:'মানচিত্র',no_reports:'রিপোর্ট অমত্তা নত্তে!'}
+  en:{landing_risk:'Landslide risk',tilt_angle:'Tilt Angle',soil_moisture:'Soil moisture',density:'Density',sensor_info:'Sensor info',alert_controls:'Alert controls',siren:'Siren',vibrate:'Vibrate',live_log:'Live log',waiting:'Waiting for data',offline_msg:'Sensor disconnected',dry:'Dry',saturated:'Saturated',trend:'Trend',stable:'stable',increasing:'increasing',decreasing:'decreasing',connecting:'Connecting',live:'Live',offline:'Offline',safe:'SAFE',warning:'WARNING',danger:'DANGER',nav_overview:'Overview',nav_map:'GIS Map',nav_stations:'Stations',nav_alerts:'Alerts',nav_incident:'Incident',nav_report:'Report',nav_history:'History',sms_title:'SMS Alerts',sms_sub:'Register phone to receive SMS on danger',sms_placeholder:'9876543210',sms_register:'Register',sms_registered:'Registered',history_title:'Historical Landslide Data — NER',incidents_by_year:'Incidents by Year',casualties_by_state:'Casualties by State',incident_timeline:'Incident Timeline',total_incidents:'Total Incidents',total_deaths:'Total Deaths',years_covered:'Years Covered',report_title:'Submit Field Report',report_sub:'Report cracks, slope damage, blocked roads, or flooding with geo-tagged photos',report_type:'Report Type',severity:'Severity Level',photo:'Photo (optional)',tap_photo:'Tap to take photo or choose from gallery',your_location:'Your Location',detect_location:'Detect My Location',description:'Description',your_name:'Your Name (optional)',submit:'Submit Report',all_reports:'All Reports',on_map:'On Map',no_reports:'No field reports yet. Be the first to report a hazard!'},
+  hi:{landing_risk:'भूस्खलन जोखिम',tilt_angle:'झुकाव कोण',nav_overview:'ओवरव्यू',nav_map:'मानचित्र',nav_stations:'स्टेशन',nav_alerts:'अलर्ट',nav_incident:'घटना',nav_report:'रिपोर्ट',nav_history:'इतिहास',soil_moisture:'मिट्टी की नमी',density:'घनत्व',sensor_info:'सेंसर जानकारी',alert_controls:'अलर्ट नियंत्रण',siren:'सायरन',vibrate:'वाइब्रेट',live_log:'लाइव लॉग',waiting:'डेटा की प्रतीक्षा है',offline_msg:'सेंसर डिस्कनेक्ट',dry:'सूखी',saturated:'संतृप्त',trend:'प्रवृत्ति',stable:'स्थिर',increasing:'बढ़ रही',decreasing:'घट रही',connecting:'कनेक्ट हो रहा है',live:'लाइव',offline:'ऑफलाइन',safe:'सुरक्षित',warning:'चेतावनी',danger:'खतरा',sms_title:'SMS अलर्ट',sms_sub:'खतरे पर SMS प्राप्त करने के लिए फोन नंबर दर्ज करें',sms_placeholder:'9876543210',sms_register:'रजिस्टर',sms_registered:'दर्ज',history_title:'ऐतिहासिक भूस्खलन डेटा — NER',incidents_by_year:'वर्ष अनुसार घटनाएं',casualties_by_state:'राज्य अनुसार हताहत',incident_timeline:'घटना समयरेखा',total_incidents:'कुल घटनाएं',total_deaths:'कुल मौतें',years_covered:'वर्ष कवरेज',report_title:'फील्ड रिपोर्ट जमा करें',report_sub:'भूस्खलन, दरार, बंद सड़क, या बाढ़ की रिपोर्ट करें',report_type:'रिपोर्ट प्रकार',severity:'गंभीरता स्तर',photo:'फोटो (वैकल्पिक)',tap_photo:'फोटो लेने के लिए टैप करें',your_location:'आपका स्थान',detect_location:'स्थान पता करें',description:'विवरण',your_name:'आपका नाम (वैकल्पिक)',submit:'रिपोर्ट जमा करें',all_reports:'सभी रिपोर्ट',on_map:'मानचित्र पर',no_reports:'अभी तक कोई रिपोर्ट नहीं। पहली रिपोर्ट दर्ज करें!'},
+  as:{landing_risk:'ভূমিধসৰ বিপদ',tilt_angle:'ঢাল কোণ',nav_overview:'সারসংক্ষেপ',nav_map:'মানচিত্ৰ',nav_stations:'ষ্টেচন',nav_alerts:'সতৰ্কতা',nav_incident:'ঘটনা',nav_report:'প্ৰতিবেদন',nav_history:'ইতিহাস',soil_moisture:'মাটীৰ আৰ্দ্ৰতা',density:'ঘনত্ব',sensor_info:'ছেন্সৰ তথ্য',alert_controls:'সতৰ্কতা নিয়ন্ত্ৰণ',siren:'ছাইৰেন',vibrate:'কম্পন',live_log:'লাইভ লগ',waiting:'ডাটাৰ অপেক্ষাত',offline_msg:'ছেন্সৰ সংযোগ বিচ্ছিন্ন',dry:'শুকনা',saturated:'পৰিপূৰ্ণ',trend:'প্ৰৱণতা',stable:'স্থিৰ',increasing:'বৃদ্ধি পাই আছে',decreasing:'হ্ৰাস পাই আছে',connecting:'সংযোগ কৰি আছে',live:'লাইভ',offline:'অফলাইন',safe:'নিৰাপদ',warning:'সতৰ্কতা',danger:'বিপদ',sms_title:'SMS সতৰ্কতা',sms_sub:'বিপদত SMS পাবলৈ ফোন নম্বৰ দিয়ক',sms_placeholder:'9876543210',sms_register:'ৰেজিষ্টাৰ',sms_registered:'ৰেজিষ্টাৰ্ড',history_title:'ঐতিহাসিক ভূমিধসৰ ডাটা — NER',incidents_by_year:'বছৰ অনুযায়ী ঘটনা',casualties_by_state:'ৰাজ্য অনুযায়ী ক্ষতিগ্ৰস্ত',incident_timeline:'ঘটনাৰ সময়ৰেখা',total_incidents:'মুঠ ঘটনা',total_deaths:'মুঠ মৃত্যু',years_covered:'বছৰ পৰিসীমা',report_title:'ফিল্ড প্ৰতিবেদন দিয়ক',report_sub:'ভূমিধস, ফাটল, বন্ধ ৰাস্তাৰ প্ৰতিবেদন দিয়ক',report_type:'প্ৰতিবেদন প্ৰকাৰ',severity:'গুৰুতৱ স্তৰ',photo:'ফটো (ঐচ্ছিক)',tap_photo:'ফটো লিবলৈ টেপ কৰক',your_location:'আপোনাৰ স্থান',detect_location:'স্থান নিৰ্ধাৰণ কৰক',description:'বিৱৰণ',your_name:'আপোনাৰ নাম (ঐচ্ছিক)',submit:'প্ৰতিবেদন দিয়ক',all_reports:'সকলো প্ৰতিবেদন',on_map:'মানচিত্ৰত',no_reports:'এতিয়াও কোনো প্ৰতিবেদন নাই!'},
+  bn:{landing_risk:'ভূমিধ্বসের ঝুঁকি',tilt_angle:'ঢাল কোণ',nav_overview:'সারসংক্ষেপ',nav_map:'মানচিত্র',nav_stations:'স্টেশন',nav_alerts:'সতর্কতা',nav_incident:'ঘটনা',nav_report:'রিপোর্ট',nav_history:'ইতিহাস',soil_moisture:'মাটির আর্দ্রতা',density:'ঘনত্ব',sensor_info:'সেন্সর তথ্য',alert_controls:'সতর্কতা নিয়ন্ত্রণ',siren:'সাইরেন',vibrate:'কম্পন',live_log:'লাইভ লগ',waiting:'ডাটার অপেক্ষায়',offline_msg:'সেন্সর সংযোগ বিচ্ছিন্ন',dry:'শুকনো',saturated:'পরিপূর্ণ',trend:'প্রবণতা',stable:'স্থির',increasing:'বৃদ্ধি পাচ্ছে',decreasing:'হ্রাস পাচ্ছে',connecting:'সংযোগ হচ্ছে',live:'লাইভ',offline:'অফলাইন',safe:'নিরাপদ',warning:'সতর্কতা',danger:'বিপদ',sms_title:'SMS সতর্কতা',sms_sub:'বিপদে SMS পেতে ফোন নম্বর দিন',sms_placeholder:'9876543210',sms_register:'নিবন্ধন',sms_registered:'নিবন্ধিত',history_title:'ঐতিহাসিক ভূমিধ্বসের ডাটা — NER',incidents_by_year:'বছর অনুযায়ী ঘটনা',casualties_by_state:'রাজ্য অনুযায়ী ক্ষতিগ্রস্ত',incident_timeline:'ঘটনার সময়রেখা',total_incidents:'মোট ঘটনা',total_deaths:'মোট মৃত্যু',years_covered:'বছর পরিসীমা',report_title:'ফিল্ড রিপোর্ট জমা দিন',report_sub:'ভূমিধ্বস, ফাটল, বন্ধ রাস্তার রিপোর্ট দিন',report_type:'রিপোর্ট প্রকার',severity:'গুরুত্ব স্তর',photo:'ছবি (ঐচ্ছিক)',tap_photo:'ছবি তুলতে ট্যাপ করুন',your_location:'আপনার অবস্থান',detect_location:'অবস্থান সনাক্ত করুন',description:'বিবরণ',your_name:'আপনার নাম (ঐচ্ছিক)',submit:'রিপোর্ট জমা দিন',all_reports:'সব রিপোর্ট',on_map:'মানচিত্রে',no_reports:'এখনো কোনো রিপোর্ট নেই!'},
+  mni:{landing_risk:'মাংল থিগাদা পাংদা',tilt_angle:'থিদোক কোণ',nav_overview:'সারসংক্ষেপ',nav_map:'মানচিত্র',nav_stations:'ষ্টেচন',nav_alerts:'সতৰ্কতা',nav_incident:'ঘটনা',nav_report:'প্ৰতিবেদন',nav_history:'ইতিহাস',soil_moisture:'মাং চিং',density:'ঘনত্ব',sensor_info:'ছেন্সর পীরি',alert_controls:'ইশারা কন্ত্রোল',siren:'ছাইৰেন',vibrate:'ফুগাদবা',live_log:'লাইভ লগ',waiting:'দাতা যাইরে',offline_msg:'ছেন্সর সিং',dry:'ইয়েক্তা',saturated:'ইয়েক্তা',trend:'যাগাই',stable:'ইয়েক্তা',increasing:'যাগাই',decreasing:'যাগাই',connecting:'মশক তুনাইরে',live:'লাইভ',offline:'অফলাইন',safe:'শান্তি',warning:'ইশারা',danger:'মহুত',sms_title:'SMS ইশারা',sms_sub:'মহুত SMS লৈবা ফোন নম্বর দিয়ো',sms_placeholder:'9876543210',sms_register:'দিয়ো',sms_registered:'দিয়ে',history_title:'যাইরে মাংল থিগাদা পাংদা — NER',incidents_by_year:'চিং অনুযায়ী',casualties_by_state:'লাই অনুযায়ী',incident_timeline:'ঘটনা সময়',total_incidents:'লীবা ঘটনা',total_deaths:'লীবা মথৌ',years_covered:'চিং পীরি',report_title:'ফিল্ড রিপোর্ট',report_sub:'মাংল থিগাদা, ফাটল, বন্ধ রাস্তা দিয়ো',report_type:'রিপোর্ট প্রকার',severity:'গুরুত্ব',photo:'ফোটো (যাইরে)',tap_photo:'ফোটো লৈবা ট্যাপ দিয়ো',your_location:'মসি লাই',detect_location:'লাই খোঁজে',description:'পীরি',your_name:'মসি মিং (যাইরে)',submit:'রিপোর্ট দিয়ো',all_reports:'লীবা রিপোর্ট',on_map:'মানচিত্র',no_reports:'রিপোর্ট অমত্তা নত্তে!'}
 };
 function t(key){return (T[currentLang]&&T[currentLang][key])||T.en[key]||key;}
 function cycleLang(){
@@ -1079,6 +1079,8 @@ function cycleLang(){
   document.getElementById('lang-label').textContent=LANG_NAMES[currentLang];
   translatePage();
   localStorage.setItem('landsafe-lang',currentLang);
+  refreshAllData();
+  loadHistory();
 }
 function translatePage(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
