@@ -275,7 +275,7 @@ async def send_sms(alert: SMSAlert):
             "key": "textbelt",  # Free tier key
         }).encode()
         req = urllib.request.Request(
-            "https://textbelt.com/sms",
+            "https://textbelt.com/text",
             data=data,
             headers={"Content-Type": "application/x-www-form-urlencoded"}
         )
