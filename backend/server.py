@@ -6,7 +6,7 @@ Deploy to Render for a permanent public URL.
 """
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime, timedelta
@@ -332,6 +332,23 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         if websocket in connected_clients:
             connected_clients.remove(websocket)
+
+
+# ---- Static files ----
+@app.get("/sw.js")
+async def serve_sw():
+    path = os.path.join(os.path.dirname(__file__), "sw.js")
+    return FileResponse(path, media_type="application/javascript")
+
+@app.get("/manifest.json")
+async def serve_manifest():
+    path = os.path.join(os.path.dirname(__file__), "manifest.json")
+    return FileResponse(path, media_type="application/json")
+
+@app.get("/historical.json")
+async def serve_historical_file():
+    path = os.path.join(os.path.dirname(__file__), "historical.json")
+    return FileResponse(path, media_type="application/json")
 
 
 # ---- Serve dashboard ----

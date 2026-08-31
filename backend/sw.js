@@ -1,5 +1,5 @@
 // Landsafe AI Service Worker — Offline Support
-const CACHE_NAME = 'landsafe-v3';
+const CACHE_NAME = 'landsafe-v4';
 const OFFLINE_URLS = [
   '/',
   '/dashboard.html',
@@ -41,22 +41,40 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // For everything else — cache first
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      return cached || fetch(event.request).then(response => {
-        // Cache new static files
+  // Network first for HTML pages (so updates are seen)
+  // Cache first for static assets (CSS, JS, images)
+  const isHTML = event.request.mode === 'navigate' || event.request.url.endsWith('/');
+  
+  if (isHTML) {
+    // NETWORK FIRST — always try to get fresh version
+    event.respondWith(
+      fetch(event.request).then(response => {
         if (response.status === 200) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
         return response;
-      });
-    }).catch(() => {
-      // Offline fallback — return cached dashboard
-      return caches.match('/');
-    })
-  );
+      }).catch(() => {
+        // Offline fallback — return cached dashboard
+        return caches.match(event.request).then(cached => cached || caches.match('/'));
+      })
+    );
+  } else {
+    // CACHE FIRST — for CSS, JS, fonts, images
+    event.respondWith(
+      caches.match(event.request).then(cached => {
+        return cached || fetch(event.request).then(response => {
+          if (response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        });
+      }).catch(() => {
+        return new Response('', {status: 503});
+      })
+    );
+  }
 });
 
 // Listen for messages from main thread
