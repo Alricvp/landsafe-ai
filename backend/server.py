@@ -15,8 +15,10 @@ import os
 import math
 import base64
 import uuid
+import urllib.request
+import urllib.parse
 
-app = FastAPI(title="Landsafe AI", version="2.0.0")
+app = FastAPI(title="Landsafe AI", version="3.0.0")
 
 # Allow all origins for public access
 app.add_middleware(
@@ -52,6 +54,11 @@ class CitizenReport(BaseModel):
     description: str = ""
     reporter_name: str = "Anonymous"
     photo_data: str = ""  # base64 encoded image
+
+class SMSAlert(BaseModel):
+    phone: str
+    message: str
+    severity: str = "info"
 
 
 # ---- Helper: calculate landslide risk ----
@@ -234,10 +241,82 @@ async def get_report_count():
     return {"total": len(citizen_reports), "critical": sum(1 for r in citizen_reports if r["severity"] == "critical"), "high": sum(1 for r in citizen_reports if r["severity"] == "high")}
 
 
+# ---- SMS Alerts API ----
+sms_recipients = []  # stored phone numbers
+
+@app.post("/api/sms/register")
+async def register_sms(alert: SMSAlert):
+    """Register phone number for SMS alerts."""
+    if alert.phone not in sms_recipients:
+        sms_recipients.append(alert.phone)
+    return {"ok": True, "message": f"Phone {alert.phone} registered for alerts", "total_recipients": len(sms_recipients)}
+
+@app.post("/api/sms/send")
+async def send_sms(alert: SMSAlert):
+    """Send SMS via MSG91 or fallback. Stores recipients for future alerts."""
+    # Always store the recipient
+    if alert.phone not in sms_recipients:
+        sms_recipients.append(alert.phone)
+    
+    # Try sending via free SMS API (MSG91 free tier)
+    msg91_key = os.getenv("MSG91_API_KEY", "")
+    if msg91_key:
+        try:
+            data = json.dumps({
+                "flow_id": os.getenv("MSG91_FLOW_ID", ""),
+                "mobiles": f"91{alert.phone}",
+                "VAR1": alert.message[:160],
+            }).encode()
+            req = urllib.request.Request(
+                f"https://api.msg91.com/api/v5/flow/{os.getenv('MSG91_FLOW_ID', '')}",
+                data=data,
+                headers={"Content-Type": "application/json", "authkey": msg91_key}
+            )
+            urllib.request.urlopen(req, timeout=5)
+            return {"ok": True, "sent": True, "via": "MSG91"}
+        except Exception as e:
+            pass
+    
+    # Fallback — log the SMS (for demo/development)
+    print(f"[SMS] To: {alert.phone} | {alert.message}")
+    return {"ok": True, "sent": False, "via": "demo_mode", "note": "SMS logged to console. Add MSG91_API_KEY env var for real SMS."}
+
+@app.get("/api/sms/recipients")
+async def get_sms_recipients():
+    return {"recipients": sms_recipients}
+
+# ---- Historical Landslide Data ----
+@app.get("/api/historical")
+async def get_historical():
+    hist_path = os.path.join(os.path.dirname(__file__), "historical.json")
+    try:
+        with open(hist_path, "r") as f:
+            data = json.load(f)
+        # Calculate summary stats
+        total_deaths = sum(d.get("deaths", 0) for d in data)
+        total_incidents = len(data)
+        years = sorted(set(d["year"] for d in data))
+        states = {}
+        for d in data:
+            loc = d["location"].split(",")[-1].strip()
+            states[loc] = states.get(loc, 0) + 1
+        return {
+            "data": data,
+            "summary": {
+                "total_incidents": total_incidents,
+                "total_deaths": total_deaths,
+                "years_covered": f"{min(years)}-{max(years)}",
+                "most_affected_states": sorted(states.items(), key=lambda x: -x[1])[:5]
+            }
+        }
+    except FileNotFoundError:
+        return {"data": [], "summary": {}}
+
+
 # ---- Health check ----
 @app.get("/health")
 async def health():
-    return {"status": "ok", "readings": len(sensor_data), "reports": len(citizen_reports)}
+    return {"status": "ok", "readings": len(sensor_data), "reports": len(citizen_reports), "sms_recipients": len(sms_recipients)}
 
 
 # ---- WebSocket for real-time dashboard updates ----

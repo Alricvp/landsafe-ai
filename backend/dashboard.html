@@ -5,10 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Landsafe AI — Landslide Monitoring</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#6FA97D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Devanagari:wght@400;500;600&family=Noto+Sans+Bengali:wght@400;500;600&family=Noto+Sans+Meetei+Mayek:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#10130F; --surface:#171B16; --surface-2:#1E231D;
@@ -241,6 +245,55 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
 .incident-btn{width:100%;padding:10px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);color:var(--text-secondary);font-size:12px;font-family:var(--font-mono);cursor:pointer;text-align:center;transition:0.2s;}
 .incident-btn:hover{border-color:var(--moss);color:var(--moss);}
 
+/* ===== LANGUAGE SWITCHER ===== */
+.lang-switch{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border);cursor:pointer;font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--text-secondary);transition:0.2s;user-select:none;}
+.lang-switch:hover{border-color:var(--moss);color:var(--moss);}
+
+/* ===== OFFLINE BANNER ===== */
+.offline-banner{display:none;position:fixed;bottom:60px;left:0;right:0;z-index:45;background:var(--rust-dim);border-top:1px solid var(--rust);padding:8px 16px;text-align:center;font-family:var(--font-mono);font-size:10px;color:var(--rust);}
+.offline-banner.show{display:block;}
+
+/* ===== SMS SETTINGS ===== */
+.sms-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;}
+.sms-row{display:flex;gap:8px;margin-top:8px;}
+.sms-input{flex:1;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text-primary);font-size:12px;font-family:var(--font-mono);outline:none;}
+.sms-input:focus{border-color:var(--moss);}
+.sms-btn{padding:8px 14px;border-radius:8px;background:var(--moss-dim);border:1px solid var(--moss);color:var(--moss);font-size:11px;font-family:var(--font-mono);cursor:pointer;white-space:nowrap;transition:0.2s;}
+.sms-btn:hover{background:var(--moss);color:var(--bg);}
+.sms-list{margin-top:8px;}
+.sms-item{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;font-family:var(--font-mono);}
+.sms-item:last-child{border:none;}
+.sms-item .num{color:var(--text-secondary);}
+.sms-item .remove{color:var(--rust);cursor:pointer;font-size:10px;}
+
+/* ===== HISTORICAL TAB ===== */
+#tab-history{padding:16px;padding-bottom:70px;max-width:900px;margin:0 auto;}
+.hist-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;}
+.hist-stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;}
+.hist-stat-val{font-family:var(--font-display);font-weight:700;font-size:24px;color:var(--rust);}
+.hist-stat-label{font-size:9px;color:var(--text-muted);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:1px;margin-top:4px;}
+.hist-chart{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px;}
+.hist-chart-title{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-muted);margin-bottom:12px;}
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:160px;padding:0 4px;}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.bar{border-radius:4px 4px 0 0;width:100%;min-height:2px;transition:height 0.8s ease;position:relative;}
+.bar-label{font-size:9px;color:var(--text-muted);font-family:var(--font-mono);writing-mode:horizontal-tb;}
+.bar-val{font-size:8px;color:var(--text-secondary);font-family:var(--font-mono);position:absolute;top:-14px;width:100%;text-align:center;}
+.hist-timeline{margin-top:16px;}
+.timeline-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.timeline-dot{width:10px;height:10px;border-radius:50%;margin-top:4px;flex-shrink:0;}
+.timeline-dot.critical{background:#ff3333;}
+.timeline-dot.high{background:var(--rust);}
+.timeline-dot.moderate{background:var(--ochre);}
+.timeline-dot.low{background:var(--moss);}
+.timeline-content{flex:1;}
+.timeline-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.timeline-location{font-family:var(--font-display);font-weight:600;font-size:12px;}
+.timeline-date{font-size:9px;color:var(--text-muted);font-family:var(--font-mono);}
+.timeline-detail{font-size:11px;color:var(--text-secondary);line-height:1.5;}
+.timeline-deaths{display:inline-block;background:var(--rust-dim);color:var(--rust);padding:2px 6px;border-radius:4px;font-size:9px;font-family:var(--font-mono);margin-top:4px;}
+@media(max-width:500px){.hist-summary{grid-template-columns:1fr;}.bar-chart{height:120px;}}
+
 /* ===== REPORT TAB ===== */
 #tab-report{padding:16px;padding-bottom:70px;max-width:800px;margin:0 auto;}
 .report-form-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;}
@@ -360,6 +413,9 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
     </div>
   </div>
   <div class="header-right">
+    <div class="lang-switch" id="lang-switch" onclick="cycleLang()">
+      <span id="lang-label">EN</span>
+    </div>
     <div class="status-pill"><span class="dot pulse" id="conn-dot"></span><span id="conn-label">Connecting</span></div>
     <span class="badge-pill safe" id="badge">SAFE</span>
   </div>
@@ -422,6 +478,15 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
         <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l4-6 4 3 5-8"/></svg>Live log<span class="line"></span></div>
         <div class="log-wrap" id="log-wrap"><div class="log-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Waiting for data</div></div>
       </div>
+      <div class="card">
+        <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>SMS Alerts<span class="line"></span></div>
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;">Register phone to receive SMS on danger</div>
+        <div class="sms-row">
+          <input class="sms-input" id="sms-phone" placeholder="9876543210" maxlength="10">
+          <button class="sms-btn" onclick="registerSMS()">Register</button>
+        </div>
+        <div class="sms-list" id="sms-list"></div>
+      </div>
     </div>
   </div>
   <div class="map-card">
@@ -444,6 +509,16 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
 
 <!-- ===== TAB: INCIDENT ===== -->
 <div id="tab-incident" class="tab-content"></div>
+
+<!-- ===== TAB: HISTORY ===== -->
+<div id="tab-history" class="tab-content">
+  <div class="card-title" style="margin:16px 16px 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Historical Landslide Data — NER<span class="line"></span></div>
+  <div class="hist-summary" id="hist-summary"></div>
+  <div class="hist-chart"><div class="hist-chart-title">Incidents by Year</div><div class="bar-chart" id="bar-chart"></div></div>
+  <div class="hist-chart"><div class="hist-chart-title">Casualties by State</div><div class="bar-chart" id="state-chart"></div></div>
+  <div class="card-title" style="margin:16px 0 8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>Incident Timeline<span class="line"></span></div>
+  <div class="hist-timeline" id="hist-timeline"></div>
+</div>
 
 <!-- ===== TAB: REPORT ===== -->
 <div id="tab-report" class="tab-content">
@@ -533,6 +608,9 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
   <div class="chat-input-row"><input id="chat-input" placeholder="Ask about landslides..." onkeydown="if(event.key==='Enter')sendChat()"><button onclick="sendChat()">Send</button></div>
 </div>
 
+<!-- OFFLINE BANNER -->
+<div class="offline-banner" id="offline-banner">📡 You are offline — showing cached data. Alerts may be delayed.</div>
+
 <!-- BOTTOM NAV -->
 <div class="bottom-nav">
   <div class="nav-item active" onclick="switchTab('overview',this)">
@@ -559,6 +637,10 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>
     <span>Report</span>
   </div>
+  <div class="nav-item" onclick="switchTab('history',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    <span>History</span>
+  </div>
 </div>
 
 <script>
@@ -573,6 +655,7 @@ function switchTab(name, el){
   el.classList.add('active');
   if(name==='map'&&!gisMapReady) initGISMap();
   if(name==='report')loadReports();
+  if(name==='history')loadHistory();
 }
 
 // ===== OVERVIEW: EXACT SAME JS AS BEFORE =====
@@ -968,6 +1051,98 @@ setInterval(loadReports,60000);
 
 // Add spin keyframe for loading
 document.head.insertAdjacentHTML('beforeend','<style>@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}</style>');
+
+// ===== SERVICE WORKER (PWA OFFLINE) =====
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
+window.addEventListener('online',()=>{document.getElementById('offline-banner').classList.remove('show');});
+window.addEventListener('offline',()=>{document.getElementById('offline-banner').classList.add('show');});
+if(!navigator.onLine)document.getElementById('offline-banner').classList.add('show');
+
+// ===== MULTILINGUAL =====
+const LANGS=['en','hi','as','bn','mni'];
+const LANG_NAMES={en:'EN',hi:'HI',as:'AS',bn:'BN',mni:'MN'};
+const LANG_FONTS={en:'var(--font-body)',hi:"'Noto Sans Devanagari',sans-serif",as:"'Noto Sans Bengali',sans-serif",bn:"'Noto Sans Bengali',sans-serif",mni:"'Noto Sans Meetei Mayek',sans-serif"};
+let currentLang='en';
+const T={
+  en:{landing_risk:'Landslide risk',tilt_angle:'Tilt Angle',soil_moisture:'Soil moisture',density:'Density',sensor_info:'Sensor info',alert_controls:'Alert controls',siren:'Siren',vibrate:'Vibrate',live_log:'Live log',waiting:'Waiting for data',offline_msg:'Sensor disconnected',dry:'Dry',saturated:'Saturated',trend:'Trend',stable:'stable',increasing:'increasing',decreasing:'decreasing',connecting:'Connecting',live:'Live',offline:'Offline',safe:'SAFE',warning:'WARNING',danger:'DANGER',sms_title:'SMS Alerts',sms_sub:'Register phone to receive SMS on danger',sms_placeholder:'9876543210',sms_register:'Register',sms_registered:'Registered',history_title:'Historical Landslide Data — NER',incidents_by_year:'Incidents by Year',casualties_by_state:'Casualties by State',incident_timeline:'Incident Timeline',total_incidents:'Total Incidents',total_deaths:'Total Deaths',years_covered:'Years Covered',report_title:'Submit Field Report',report_sub:'Report cracks, slope damage, blocked roads, or flooding with geo-tagged photos',report_type:'Report Type',severity:'Severity Level',photo:'Photo (optional)',tap_photo:'Tap to take photo or choose from gallery',your_location:'Your Location',detect_location:'Detect My Location',description:'Description',your_name:'Your Name (optional)',submit:'Submit Report',all_reports:'All Reports',on_map:'On Map',no_reports:'No field reports yet. Be the first to report a hazard!'},
+  hi:{landing_risk:'भूस्खलन जोखिम',tilt_angle:'झुकाव कोण',soil_moisture:'मिट्टी की नमी',density:'घनत्व',sensor_info:'सेंसर जानकारी',alert_controls:'अलर्ट नियंत्रण',siren:'सायरन',vibrate:'वाइब्रेट',live_log:'लाइव लॉग',waiting:'डेटा की प्रतीक्षा है',offline_msg:'सेंसर डिस्कनेक्ट',dry:'सूखी',saturated:'संतृप्त',trend:'प्रवृत्ति',stable:'स्थिर',increasing:'बढ़ रही',decreasing:'घट रही',connecting:'कनेक्ट हो रहा है',live:'लाइव',offline:'ऑफलाइन',safe:'सुरक्षित',warning:'चेतावनी',danger:'खतरा',sms_title:'SMS अलर्ट',sms_sub:'खतरे पर SMS प्राप्त करने के लिए फोन नंबर दर्ज करें',sms_placeholder:'9876543210',sms_register:'रजिस्टर',sms_registered:'दर्ज',history_title:'ऐतिहासिक भूस्खलन डेटा — NER',incidents_by_year:'वर्ष अनुसार घटनाएं',casualties_by_state:'राज्य अनुसार हताहत',incident_timeline:'घटना समयरेखा',total_incidents:'कुल घटनाएं',total_deaths:'कुल मौतें',years_covered:'वर्ष कवरेज',report_title:'फील्ड रिपोर्ट जमा करें',report_sub:'भूस्खलन, दरार, बंद सड़क, या बाढ़ की रिपोर्ट करें',report_type:'रिपोर्ट प्रकार',severity:'गंभीरता स्तर',photo:'फोटो (वैकल्पिक)',tap_photo:'फोटो लेने के लिए टैप करें',your_location:'आपका स्थान',detect_location:'स्थान पता करें',description:'विवरण',your_name:'आपका नाम (वैकल्पिक)',submit:'रिपोर्ट जमा करें',all_reports:'सभी रिपोर्ट',on_map:'मानचित्र पर',no_reports:'अभी तक कोई रिपोर्ट नहीं। पहली रिपोर्ट दर्ज करें!'},
+  as:{landing_risk:'ভূমিধসৰ বিপদ',tilt_angle:'ঢাল কোণ',soil_moisture:'মাটীৰ আৰ্দ্ৰতা',density:'ঘনত্ব',sensor_info:'ছেন্সৰ তথ্য',alert_controls:'সতৰ্কতা নিয়ন্ত্ৰণ',siren:'ছাইৰেন',vibrate:'কম্পন',live_log:'লাইভ লগ',waiting:'ডাটাৰ অপেক্ষাত',offline_msg:'ছেন্সৰ সংযোগ বিচ্ছিন্ন',dry:'শুকনা',saturated:'পৰিপূৰ্ণ',trend:'প্ৰৱণতা',stable:'স্থিৰ',increasing:'বৃদ্ধি পাই আছে',decreasing:'হ্ৰাস পাই আছে',connecting:'সংযোগ কৰি আছে',live:'লাইভ',offline:'অফলাইন',safe:'নিৰাপদ',warning:'সতৰ্কতা',danger:'বিপদ',sms_title:'SMS সতৰ্কতা',sms_sub:'বিপদত SMS পাবলৈ ফোন নম্বৰ দিয়ক',sms_placeholder:'9876543210',sms_register:'ৰেজিষ্টাৰ',sms_registered:'ৰেজিষ্টাৰ্ড',history_title:'ঐতিহাসিক ভূমিধসৰ ডাটা — NER',incidents_by_year:'বছৰ অনুযায়ী ঘটনা',casualties_by_state:'ৰাজ্য অনুযায়ী ক্ষতিগ্ৰস্ত',incident_timeline:'ঘটনাৰ সময়ৰেখা',total_incidents:'মুঠ ঘটনা',total_deaths:'মুঠ মৃত্যু',years_covered:'বছৰ পৰিসীমা',report_title:'ফিল্ড প্ৰতিবেদন দিয়ক',report_sub:'ভূমিধস, ফাটল, বন্ধ ৰাস্তাৰ প্ৰতিবেদন দিয়ক',report_type:'প্ৰতিবেদন প্ৰকাৰ',severity:'গুৰুতৱ স্তৰ',photo:'ফটো (ঐচ্ছিক)',tap_photo:'ফটো লিবলৈ টেপ কৰক',your_location:'আপোনাৰ স্থান',detect_location:'স্থান নিৰ্ধাৰণ কৰক',description:'বিৱৰণ',your_name:'আপোনাৰ নাম (ঐচ্ছিক)',submit:'প্ৰতিবেদন দিয়ক',all_reports:'সকলো প্ৰতিবেদন',on_map:'মানচিত্ৰত',no_reports:'এতিয়াও কোনো প্ৰতিবেদন নাই!'},
+  bn:{landing_risk:'ভূমিধ্বসের ঝুঁকি',tilt_angle:'ঢাল কোণ',soil_moisture:'মাটির আর্দ্রতা',density:'ঘনত্ব',sensor_info:'সেন্সর তথ্য',alert_controls:'সতর্কতা নিয়ন্ত্রণ',siren:'সাইরেন',vibrate:'কম্পন',live_log:'লাইভ লগ',waiting:'ডাটার অপেক্ষায়',offline_msg:'সেন্সর সংযোগ বিচ্ছিন্ন',dry:'শুকনো',saturated:'পরিপূর্ণ',trend:'প্রবণতা',stable:'স্থির',increasing:'বৃদ্ধি পাচ্ছে',decreasing:'হ্রাস পাচ্ছে',connecting:'সংযোগ হচ্ছে',live:'লাইভ',offline:'অফলাইন',safe:'নিরাপদ',warning:'সতর্কতা',danger:'বিপদ',sms_title:'SMS সতর্কতা',sms_sub:'বিপদে SMS পেতে ফোন নম্বর দিন',sms_placeholder:'9876543210',sms_register:'নিবন্ধন',sms_registered:'নিবন্ধিত',history_title:'ঐতিহাসিক ভূমিধ্বসের ডাটা — NER'',incidents_by_year:'বছর অনুযায়ী ঘটনা',casualties_by_state:'রাজ্য অনুযায়ী ক্ষতিগ্রস্ত',incident_timeline:'ঘটনার সময়রেখা',total_incidents:'মোট ঘটনা',total_deaths:'মোট মৃত্যু',years_covered:'বছর পরিসীমা',report_title:'ফিল্ড রিপোর্ট জমা দিন',report_sub:'ভূমিধ্বস, ফাটল, বন্ধ রাস্তার রিপোর্ট দিন',report_type:'রিপোর্ট প্রকার',severity:'গুরুত্ব স্তর',photo:'ছবি (ঐচ্ছিক)',tap_photo:'ছবি তুলতে ট্যাপ করুন',your_location:'আপনার অবস্থান',detect_location:'অবস্থান সনাক্ত করুন',description:'বিবরণ',your_name:'আপনার নাম (ঐচ্ছিক)',submit:'রিপোর্ট জমা দিন',all_reports:'সব রিপোর্ট',on_map:'মানচিত্রে',no_reports:'এখনো কোনো রিপোর্ট নেই!'},
+  mni:{landing_risk:'মাংল থিগাদা পাংদা',tilt_angle:'থিদোক কোণ',soil_moisture:'মাং চিং',density:'ঘনত্ব',sensor_info:'ছেন্সর পীরি',alert_controls:'ইশারা কন্ত্রোল',siren:'ছাইৰেন',vibrate:'ফুগাদবা',live_log:'লাইভ লগ',waiting:'দাতা যাইরে',offline_msg:'ছেন্সর সিং',dry:'ইয়েক্তা',saturated:'ইয়েক্তা',trend:'যাগাই',stable:'ইয়েক্তা',increasing:'যাগাই',decreasing:'যাগাই',connecting:'মশক তুনাইরে',live:'লাইভ',offline:'অফলাইন',safe:'শান্তি',warning:'ইশারা',danger:'মহুত',sms_title:'SMS ইশারা',sms_sub:'মহুত SMS লৈবা ফোন নম্বর দিয়ো',sms_placeholder:'9876543210',sms_register:'দিয়ো',sms_registered:'দিয়ে',history_title:'যাইরে মাংল থিগাদা পাংদা — NER',incidents_by_year:'চিং অনুযায়ী',casualties_by_state:'লাই অনুযায়ী',incident_timeline:'ঘটনা সময়',total_incidents:'লীবা ঘটনা',total_deaths:'লীবা মথৌ',years_covered:'চিং পীরি',report_title:'ফিল্ড রিপোর্ট',report_sub:'মাংল থিগাদা, ফাটল, বন্ধ রাস্তা দিয়ো',report_type:'রিপোর্ট প্রকার',severity:'গুরুত্ব',photo:'ফোটো (যাইরে)',tap_photo:'ফোটো লৈবা ট্যাপ দিয়ো',your_location:'মসি লাই',detect_location:'লাই খোঁজে',description:'পীরি',your_name:'মসি মিং (যাইরে)',submit:'রিপোর্ট দিয়ো',all_reports:'লীবা রিপোর্ট',on_map:'মানচিত্র',no_reports:'রিপোর্ট অমত্তা নত্তে!'}
+};
+function t(key){return (T[currentLang]&&T[currentLang][key])||T.en[key]||key;}
+function cycleLang(){
+  const i=LANGS.indexOf(currentLang);
+  currentLang=LANGS[(i+1)%LANGS.length];
+  document.getElementById('lang-label').textContent=LANG_NAMES[currentLang];
+  translatePage();
+  localStorage.setItem('landsafe-lang',currentLang);
+}
+function translatePage(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{el.placeholder=t(el.dataset.i18nPh);});
+}
+// Restore saved language
+const savedLang=localStorage.getItem('landsafe-lang');
+if(savedLang&&LANGS.includes(savedLang)){currentLang=savedLang;document.getElementById('lang-label').textContent=LANG_NAMES[currentLang];}
+
+// ===== HISTORICAL DATA =====
+async function loadHistory(){
+  try{
+    const res=await fetch(`${location.origin}/api/historical`);
+    const j=await res.json();
+    const data=j.data||[];
+    const summary=j.summary||{};
+    // Summary cards
+    const sumEl=document.getElementById('hist-summary');
+    if(sumEl)sumEl.innerHTML=`<div class="hist-stat"><div class="hist-stat-val">${summary.total_incidents||0}</div><div class="hist-stat-label">Total Incidents</div></div><div class="hist-stat"><div class="hist-stat-val">${summary.total_deaths||0}</div><div class="hist-stat-label">Total Deaths</div></div><div class="hist-stat"><div class="hist-stat-val">${summary.years_covered||'N/A'}</div><div class="hist-stat-label">Years Covered</div></div>`;
+    // Bar chart by year
+    const yearCounts={};
+    data.forEach(d=>{yearCounts[d.year]=(yearCounts[d.year]||0)+1;});
+    const years=Object.keys(yearCounts).sort();
+    const maxCount=Math.max(...Object.values(yearCounts),1);
+    const barEl=document.getElementById('bar-chart');
+    if(barEl){barEl.innerHTML=years.map(y=>{const h=(yearCounts[y]/maxCount)*130;const c=yearCounts[y]>=4?'var(--rust)':yearCounts[y]>=2?'var(--ochre)':'var(--moss)';return `<div class="bar-col"><div class="bar" style="height:${h}px;background:${c};"><span class="bar-val">${yearCounts[y]}</span></div><span class="bar-label">${y}</span></div>`;}).join('');}
+    // Bar chart by state
+    const stateCounts={};
+    data.forEach(d=>{const s=d.location.split(',').pop().trim();stateCounts[s]=(stateCounts[s]||0)+1;});
+    const states=Object.entries(stateCounts).sort((a,b)=>b[1]-a[1]);
+    const maxState=Math.max(...states.map(s=>s[1]),1);
+    const stateEl=document.getElementById('state-chart');
+    if(stateEl){stateEl.innerHTML=states.map(([s,c])=>{const h=(c/maxState)*130;const col=c>=4?'var(--rust)':c>=2?'var(--ochre)':'var(--moss)';return `<div class="bar-col"><div class="bar" style="height:${h}px;background:${col};"><span class="bar-val">${c}</span></div><span class="bar-label" style="font-size:8px;">${s.substring(0,6)}</span></div>`;}).join('');}
+    // Timeline
+    const tlEl=document.getElementById('hist-timeline');
+    if(tlEl){tlEl.innerHTML=data.sort((a,b)=>b.year-a.year||b.month-a.month).slice(0,15).map(d=>{const sev=d.deaths>=20?'critical':d.deaths>=8?'high':d.deaths>=3?'moderate':'low';const months=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return `<div class="timeline-item"><div class="timeline-dot ${sev}"></div><div class="timeline-content"><div class="timeline-header"><span class="timeline-location">${d.location}</span><span class="timeline-date">${months[d.month]} ${d.year}</span></div><div class="timeline-detail">${d.cause} — ${d.rainfall_mm}mm rainfall${d.road_blocks?`, ${d.road_blocks} road blocks`:''}</div><span class="timeline-deaths">💀 ${d.deaths} deaths${d.injured?`, ${d.injured} injured`:''}</span></div></div>`;}).join('');}
+  }catch(e){}
+}
+
+// ===== SMS SETTINGS =====
+let smsRecipients=[];
+async function loadSMSRecipients(){
+  try{const r=await fetch(`${location.origin}/api/sms/recipients`);const j=await r.json();smsRecipients=j.recipients||[];renderSMSList();}catch(e){}
+}
+function renderSMSList(){
+  const el=document.getElementById('sms-list');
+  if(!el)return;
+  if(smsRecipients.length===0){el.innerHTML='';return;}
+  el.innerHTML=smsRecipients.map(p=>`<div class="sms-item"><span class="num">📱 ${p}</span><span class="remove" onclick="removeSMS('${p}')">✕</span></div>`).join('');
+}
+async function registerSMS(){
+  const input=document.getElementById('sms-phone');
+  const phone=input.value.trim();
+  if(!phone||phone.length!==10){input.style.borderColor='var(--rust)';setTimeout(()=>input.style.borderColor='var(--border)',2000);return;}
+  try{const r=await fetch(`${location.origin}/api/sms/register`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,message:'',severity:'danger'})});const j=await r.json();if(j.ok){input.value='';smsRecipients.push(phone);renderSMSList();}}catch(e){}
+}
+function removeSMS(phone){smsRecipients=smsRecipients.filter(p=>p!==phone);renderSMSList();}
+loadSMSRecipients();
+
+// ===== OVERVIEW MAP TRANSLATED LABELS =====
+function updateOverviewLabels(){
+  document.querySelector('.risk-label').textContent=t('landing_risk');
+  document.querySelector('.tilt-unit').textContent=t('tilt_angle');
+}
 
 // Trigger notification only on STATUS CHANGE (not every poll)
 function checkNotif(status,tilt,prevStatus){
