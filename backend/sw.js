@@ -1,11 +1,13 @@
 // Landsafe AI Service Worker — Offline Support
-const CACHE_NAME = 'landsafe-v4';
+const CACHE_NAME = 'landsafe-v5';
 const OFFLINE_URLS = [
   '/',
   '/dashboard.html',
   '/manifest.json',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+  'https://unpkg.com/three@0.160.0/build/three.min.js',
+  'https://unpkg.com/globe.gl@2.31.1/dist/globe.gl.min.js',
   'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap'
 ];
 
