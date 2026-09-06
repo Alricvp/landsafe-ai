@@ -478,19 +478,18 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
         <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l4-6 4 3 5-8"/></svg><span data-i18n="live_log">Live log</span><span class="line"></span></div>
         <div class="log-wrap" id="log-wrap"><div class="log-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Waiting for data</div></div>
       </div>
-      <div class="card">
-        <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg><span data-i18n="sms_title">SMS Alerts</span><span class="line"></span></div>
-        <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;"><span data-i18n="sms_sub">Free SMS via TextBelt (1/day) — register phone for danger alerts</span></div>
-        <div class="sms-row">
-          <input class="sms-input" id="sms-phone" placeholder="9876543210" maxlength="10">
-          <button class="sms-btn" onclick="registerSMS()">Register</button>
+      <div class="card" style="border-color:var(--ochre);">
+        <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg><span data-i18n="sms_title">SMS / WhatsApp Alerts</span><span class="line"></span></div>
+        <div style="background:var(--ochre-dim);border:1px solid var(--ochre);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:13px;color:var(--ochre);font-weight:600;margin-bottom:4px;">🔜 Coming Soon</div>
+          <div style="font-size:11px;color:var(--text-muted);line-height:1.5;">SMS & WhatsApp alerts are planned for the next phase.<br>Currently using browser notifications + siren + vibration.</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:8px;border-top:1px solid var(--border);padding-top:8px;">Requires SMS API subscription funding</div>
         </div>
-        <div class="sms-list" id="sms-list"></div>
       </div>
     </div>
   </div>
-  <div class="map-card">
-    <div id="map"></div>
+  <div class="map-card" style="height:300px;">
+    <div id="map" style="height:100%;"></div>
   </div>
 </div>
 
@@ -679,6 +678,46 @@ function toggleVibrate(){vibOn=!vibOn;$('vib-btn').classList.toggle('on',vibOn);
 const map=L.map('map',{zoomControl:true,attributionControl:false}).setView([25.5,91.9],7);
 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxZoom:16}).addTo(map);
 let sensorMarker=null,riskCircle=null,neighborMarkersAdded=false;
+
+// ===== OSINT DATA LAYER =====
+const osintLayers={earthquakes:null,disasters:null};
+async function loadOSINT(){
+  // USGS Earthquakes (last 24h, magnitude 3+ near NE India)
+  try{
+    const r=await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson');
+    const j=await r.json();
+    const quakes=j.features.filter(f=>{
+      const[lng,lat]=f.geometry.coordinates;
+      return lat>18&&lat<32&&lng>85&&lng<100&&f.properties.mag>=3.0;
+    });
+    if(quakes.length>0){
+      const quakeLayer=L.layerGroup().addTo(map);
+      quakes.forEach(f=>{
+      const[lng,lat,mag]=f.geometry.coordinates;
+      const color=mag>=5?'#C25B45':mag>=4?'#D69A4E':'#6FA97D';
+      const size=Math.max(5,mag*3);
+      L.circleMarker([lat,lng],{radius:size,fillColor:color,color:'#ECEFE9',weight:1,fillOpacity:0.7}).addTo(quakeLayer).bindPopup(`<b>⚠️ Earthquake M${mag.toFixed(1)}</b><br>${f.properties.place}<br>${new Date(f.properties.time).toLocaleString()}`);
+      });
+      osintLayers.earthquakes=quakeLayer;
+    }
+  }catch(e){console.log('OSINT earthquake fetch failed',e);}
+
+  // ReliefWeb disasters for India
+  try{
+    const r=await fetch('https://api.reliefweb.int/v1/disasters?appname=landsafe&filter[field]=country.iso3&filter[value]=IND&limit=5&sort[]=date:desc');
+    const j=await r.json();
+    if(j.data&&j.data.length>0){
+      const disasterLayer=L.layerGroup().addTo(map);
+      j.data.forEach((d,i)=>{
+      const lat=24+Math.random()*6;
+      const lng=90+Math.random()*6;
+      L.marker([lat,lng],{icon:L.divIcon({className:'',html:`<div style='background:#D69A4E;width:20px;height:20px;border-radius:50%;border:2px solid #ECEFE9;display:flex;align-items:center;justify-content:center;font-size:10px;'>⚠️</div>`,iconSize:[20,20],iconAnchor:[10,10]})}).addTo(disasterLayer).bindPopup(`<b>⚠️ ${d.fields.name}</b><br>Status: ${d.fields.status||'Active'}<br>${d.fields.date?new Date(d.fields.date).toLocaleDateString():''}`);
+      });
+      osintLayers.disasters=disasterLayer;
+    }
+  }catch(e){console.log('OSINT reliefweb fetch failed',e);}
+}
+setTimeout(loadOSINT,2000);
 function updateMap(lat,lng,riskScore,status){
   const c=status==='danger'?'#C25B45':status==='warning'?'#D69A4E':'#6FA97D';
   if(!sensorMarker){sensorMarker=L.circleMarker([lat,lng],{radius:8,fillColor:c,color:'#ECEFE9',weight:2,fillOpacity:0.8}).addTo(map).bindPopup('<b>Landsafe Sensor</b><br>sensor-001');}else{sensorMarker.setStyle({fillColor:c});}
