@@ -11,6 +11,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+<script src="https://unpkg.com/globe.gl@2.31.1/dist/globe.gl.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Devanagari:wght@400;500;600&family=Noto+Sans+Bengali:wght@400;500;600&family=Noto+Sans+Meetei+Mayek:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -488,8 +490,9 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
       </div>
     </div>
   </div>
-  <div class="map-card" style="height:300px;">
-    <div id="map" style="height:100%;"></div>
+  <div class="map-card" style="height:350px;position:relative;">
+    <div id="globe-overview" style="width:100%;height:100%;"></div>
+    <div style="position:absolute;bottom:8px;left:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:9px;color:var(--text-muted);z-index:10;">🌍 OSINT Globe — Rotate & Zoom</div>
   </div>
 </div>
 
@@ -652,6 +655,7 @@ function switchTab(name, el){
   document.getElementById('tab-'+name).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   el.classList.add('active');
+  if(name==='overview')initGlobe();
   if(name==='map'&&!gisMapReady) initGISMap();
   if(name==='report')loadReports();
   if(name==='history')loadHistory();
@@ -674,53 +678,68 @@ function stopContinuousVibrate(){if(vibInterval){clearInterval(vibInterval);vibI
 function toggleSiren(){sirenOn=!sirenOn;$('siren-btn').classList.toggle('on',sirenOn);$('siren-state').textContent=sirenOn?'On':'Off';if(sirenOn){initAudio();if(lastStatus!=='safe')startSiren();}else stopSiren();}
 function toggleVibrate(){vibOn=!vibOn;$('vib-btn').classList.toggle('on',vibOn);$('vib-state').textContent=vibOn?'On':'Off';if(vibOn){navigator.vibrate&&navigator.vibrate(200);if(lastStatus==='danger')startContinuousVibrate();}else stopContinuousVibrate();}
 
-// Overview map
-const map=L.map('map',{zoomControl:true,attributionControl:false}).setView([25.5,91.9],7);
-L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxZoom:16}).addTo(map);
-let sensorMarker=null,riskCircle=null,neighborMarkersAdded=false;
-
-// ===== OSINT DATA LAYER =====
-const osintLayers={earthquakes:null,disasters:null};
-async function loadOSINT(){
-  // USGS Earthquakes (last 24h, magnitude 3+ near NE India)
+// ===== 3D OSINT GLOBE (Overview) =====
+let globeReady=false,globeObj=null;
+function initGlobe(){
+  if(globeReady)return;
+  const c=document.getElementById('globe-overview');
+  if(!c)return;
+  globeReady=true;
+  globeObj=Globe()(c)
+    .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+    .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+    .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
+    .atmosphereColor('#3a228a')
+    .atmosphereAltitude(0.25)
+    .showGraticules()
+    .pointOfView({lat:25.5,lng:91.9,altitude:2.5})
+    .onGlobeReady(()=>{
+      globeObj.controls().autoRotate=true;
+      globeObj.controls().autoRotateSpeed=0.3;
+      loadOSINTGlobe();
+    });
+  const nerMarkers=[
+    {lat:25.67,lng:91.88,size:0.08,color:'#C25B45',label:'Gangtok NH10',risk:72},
+    {lat:25.57,lng:91.89,size:0.07,color:'#6FA97D',label:'Shillong',risk:48},
+    {lat:24.80,lng:93.93,size:0.06,color:'#D69A4E',label:'Imphal',risk:58},
+    {lat:25.67,lng:94.10,size:0.06,color:'#6FA97D',label:'Kohima',risk:35},
+    {lat:23.83,lng:91.28,size:0.07,color:'#D69A4E',label:'Agartala',risk:52},
+    {lat:23.73,lng:92.72,size:0.05,color:'#6FA97D',label:'Aizawl',risk:30},
+    {lat:25.25,lng:92.58,size:0.06,color:'#C25B45',label:'Haflong',risk:68},
+  ];
+  globeObj.pointsData(nerMarkers)
+    .pointLat('lat').pointLng('lng').pointColor('color').pointAltitude(0.01).pointRadius('size')
+    .pointLabel(d=>`<div style='background:rgba(22,27,22,0.95);padding:8px 12px;border-radius:8px;border:1px solid ${d.color};font-size:12px;color:#ECEFE9;max-width:180px;'><b>${d.label}</b><br>Risk: <span style='color:${d.color}'>${d.risk}/100</span></div>`);
+  const corridors=[
+    {coords:[{lat:26.14,lng:91.74},{lat:25.67,lng:91.88},{lat:25.30,lng:91.90}],color:'#6FA97D'},
+    {coords:[{lat:25.67,lng:94.10},{lat:25.40,lng:94.00},{lat:24.80,lng:93.93}],color:'#6C8B9E'},
+  ];
+  globeObj.pathsData(corridors)
+    .pathPoints('coords').pathPointLat('lat').pathPointLng('lng')
+    .pathColor('color').pathDashLength(0.01).pathDashGap(0.005).pathStroke(1.5).pathDashAnimateTime(2000);
+}
+async function loadOSINTGlobe(){
   try{
     const r=await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson');
     const j=await r.json();
-    const quakes=j.features.filter(f=>{
-      const[lng,lat]=f.geometry.coordinates;
-      return lat>18&&lat<32&&lng>85&&lng<100&&f.properties.mag>=3.0;
-    });
-    if(quakes.length>0){
-      const quakeLayer=L.layerGroup().addTo(map);
-      quakes.forEach(f=>{
-      const[lng,lat,mag]=f.geometry.coordinates;
-      const color=mag>=5?'#C25B45':mag>=4?'#D69A4E':'#6FA97D';
-      const size=Math.max(5,mag*3);
-      L.circleMarker([lat,lng],{radius:size,fillColor:color,color:'#ECEFE9',weight:1,fillOpacity:0.7}).addTo(quakeLayer).bindPopup(`<b>⚠️ Earthquake M${mag.toFixed(1)}</b><br>${f.properties.place}<br>${new Date(f.properties.time).toLocaleString()}`);
-      });
-      osintLayers.earthquakes=quakeLayer;
-    }
+    const quakes=j.features.filter(f=>{const[lng,lat]=f.geometry.coordinates;return lat>18&&lat<32&&lng>85&&lng<100&&f.properties.mag>=3.0;}).map(f=>{const[lng,lat,mag]=f.geometry.coordinates;return{lat,lng,size:Math.max(0.01,mag/80),color:mag>=5?'#C25B45':mag>=4?'#D69A4E':'#6FA97D',label:'M'+mag.toFixed(1)+' - '+f.properties.place};});
+    if(quakes.length>0&&globeObj){const cur=globeObj.pointsData();globeObj.pointsData([...cur,...quakes]);}
   }catch(e){console.log('OSINT earthquake fetch failed',e);}
-
-  // ReliefWeb disasters for India
   try{
     const r=await fetch('https://api.reliefweb.int/v1/disasters?appname=landsafe&filter[field]=country.iso3&filter[value]=IND&limit=5&sort[]=date:desc');
     const j=await r.json();
     if(j.data&&j.data.length>0){
-      const disasterLayer=L.layerGroup().addTo(map);
-      j.data.forEach((d,i)=>{
-      const lat=24+Math.random()*6;
-      const lng=90+Math.random()*6;
-      L.marker([lat,lng],{icon:L.divIcon({className:'',html:`<div style='background:#D69A4E;width:20px;height:20px;border-radius:50%;border:2px solid #ECEFE9;display:flex;align-items:center;justify-content:center;font-size:10px;'>⚠️</div>`,iconSize:[20,20],iconAnchor:[10,10]})}).addTo(disasterLayer).bindPopup(`<b>⚠️ ${d.fields.name}</b><br>Status: ${d.fields.status||'Active'}<br>${d.fields.date?new Date(d.fields.date).toLocaleDateString():''}`);
-      });
-      osintLayers.disasters=disasterLayer;
+      const alerts=j.data.map(d=>({lat:24+Math.random()*4,lng:90+Math.random()*5,size:0.04,color:'#D69A4E',label:d.fields.name}));
+      if(globeObj){const cur=globeObj.pointsData();globeObj.pointsData([...cur,...alerts]);}
     }
   }catch(e){console.log('OSINT reliefweb fetch failed',e);}
 }
-setTimeout(loadOSINT,2000);
 function updateMap(lat,lng,riskScore,status){
+  if(!globeObj)return;
   const c=status==='danger'?'#C25B45':status==='warning'?'#D69A4E':'#6FA97D';
-  if(!sensorMarker){sensorMarker=L.circleMarker([lat,lng],{radius:8,fillColor:c,color:'#ECEFE9',weight:2,fillOpacity:0.8}).addTo(map).bindPopup('<b>Landsafe Sensor</b><br>sensor-001');}else{sensorMarker.setStyle({fillColor:c});}
+  const p={lat,lng,size:0.06,color:c,label:'ESP32 Sensor',risk:riskScore};
+  const cur=globeObj.pointsData().filter(x=>x.label!=='ESP32 Sensor');
+  globeObj.pointsData([...cur,p]);
   if(!riskCircle){riskCircle=L.circle([lat,lng],{radius:1000+riskScore*50,fillColor:c,color:c,weight:1,fillOpacity:0.1+riskScore*0.003}).addTo(map);}else{riskCircle.setStyle({fillColor:c,color:c,fillOpacity:0.1+riskScore*0.003});riskCircle.setRadius(1000+riskScore*50);}
   if(!neighborMarkersAdded){neighborMarkersAdded=true;[[25.67,91.88],[25.45,92.10],[25.55,91.75],[25.35,91.95],[25.70,92.05],[25.50,91.60]].forEach(([nlat,nlng])=>{const r=Math.max(0,riskScore+(Math.random()-0.5)*30);const cc=r>=70?'#C25B45':r>=40?'#D69A4E':'#6FA97D';L.circleMarker([nlat,nlng],{radius:4,fillColor:cc,color:cc,weight:1,fillOpacity:0.5}).addTo(map);});}
 }
@@ -757,7 +776,7 @@ function update(data,risk){
 async function poll(){try{const r=await fetch(API);const j=await r.json();if(j.data&&j.data.timestamp!==lastTS){lastTS=j.data.timestamp;lastDataTime=Date.now();update(j.data,j.risk);$('conn-dot').className='dot on pulse';$('conn-label').textContent='Live';}else if(Date.now()-lastDataTime>10000&&lastDataTime>0){goOffline();}}catch(e){goOffline();}}
 function goOffline(){$('conn-dot').className='dot pulse';$('conn-label').textContent='Offline';$('badge').textContent='OFFLINE';$('badge').className='badge-pill';$('dev-status').textContent='OFFLINE';$('dev-status').style.color='var(--text-muted)';$('tilt-dev').textContent='Sensor disconnected — waiting for data…';$('needle').style.transform='translateX(-50%) rotate(0deg)';$('tilt-val').textContent='0.00°';$('tilt-val').className='tilt-num safe';$('moisture-val').textContent='0%';$('moisture-val').style.color='var(--slate)';$('moisture-bar').style.width='4%';$('moisture-bar').className='blue';$('water-density').textContent='—';$('density-bar').style.width='0%';$('density-bar').className='blue';$('risk-level').textContent='Low';$('risk-level').style.color='#6FA97D';$('risk-score').textContent='0%';$('risk-bar').style.width='0%';$('risk-bar').className='risk-bar-fill low';$('prediction-text').textContent='Sensor offline — awaiting data…';$('risk-trend').textContent='stable';$('risk-trend').style.color='var(--text-muted)';$('overlay').className='overlay';$('alert-bar').className='alert-bar';stopSiren();stopContinuousVibrate();}
 async function loadHist(){try{const r=await fetch(HIST);const j=await r.json();if(j.data&&j.data.length>0){const riskR=await fetch(RISK);const riskJ=await riskR.json();update(j.data[j.data.length-1],riskJ.data);j.data.slice(-20).forEach(d=>{const t=new Date(d.timestamp).toLocaleTimeString();const e=document.createElement('div');e.className='log-entry';const m=d.moisture||0;e.innerHTML=`<span class="log-t">${t}</span><span class="log-v ${d.status}">${d.tilt.toFixed(2)}° M:${m.toFixed(0)}% ${d.status==='danger'?'🔴':d.status==='warning'?'🟡':'🟢'}</span>`;$('log-wrap').appendChild(e);});}}catch(e){}}
-loadHist();setInterval(poll,1000);
+loadHist();setInterval(poll,1000);initGlobe();
 
 // ===== GIS MAP TAB =====
 let gisMapReady=false,gisMap=null;
