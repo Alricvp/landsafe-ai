@@ -60,11 +60,6 @@ class SMSAlert(BaseModel):
     message: str
     severity: str = "info"
 
-class WhatsAppAlert(BaseModel):
-    phone: str
-    message: str
-    severity: str = "info"
-
 
 
 # ---- Helper: calculate landslide risk ----
@@ -247,12 +242,24 @@ async def get_report_count():
     return {"total": len(citizen_reports), "critical": sum(1 for r in citizen_reports if r["severity"] == "critical"), "high": sum(1 for r in citizen_reports if r["severity"] == "high")}
 
 
-# ---- Alert Recipients ----
-sms_recipients = []
-whatsapp_recipients = []
+# ---- SMS Alerts API ----
+sms_recipients = []  # stored phone numbers
 
-def format_india_phone(phone):
-    phone = phone.strip().replace(" ", "").replace("-", "")
+@app.post("/api/sms/register")
+async def register_sms(alert: SMSAlert):
+    """Register phone number for SMS alerts."""
+    if alert.phone not in sms_recipients:
+        sms_recipients.append(alert.phone)
+    return {"ok": True, "message": f"Phone {alert.phone} registered for SMS alerts (TextBelt)", "total_recipients": len(sms_recipients)}
+
+@app.post("/api/sms/send")
+async def send_sms(alert: SMSAlert):
+    """Send SMS via TextBelt (free, no signup). 1 SMS/day on free tier."""
+    if alert.phone not in sms_recipients:
+        sms_recipients.append(alert.phone)
+    
+    # Format phone for India
+    phone = alert.phone.strip()
     if not phone.startswith("+"):
         if phone.startswith("0"):
             phone = "+91" + phone[1:]
@@ -260,87 +267,31 @@ def format_india_phone(phone):
             phone = "+91" + phone
         else:
             phone = "+" + phone
-    return phone
-
-@app.post("/api/sms/register")
-async def register_sms(alert: SMSAlert):
-    if alert.phone not in sms_recipients:
-        sms_recipients.append(alert.phone)
-    return {"ok": True, "message": f"Phone {alert.phone} registered for SMS", "total_recipients": len(sms_recipients)}
-
-@app.post("/api/sms/send")
-async def send_sms(alert: SMSAlert):
-    phone = format_india_phone(alert.phone)
-    if alert.phone not in sms_recipients:
-        sms_recipients.append(alert.phone)
     
-    # Try Twilio first
-    twilio_sid = os.getenv("TWILIO_SID", "")
-    twilio_token = os.getenv("TWILIO_TOKEN", "")
-    twilio_from = os.getenv("TWILIO_FROM", "")
-    if twilio_sid and twilio_token and twilio_from:
-        try:
-            url = f"https://api.twilio.com/2010-04-01/Accounts/{twilio_sid}/Messages.json"
-            data = urllib.parse.urlencode({"To": phone, "From": twilio_from, "Body": alert.message[:160]}).encode()
-            auth = base64.b64encode(f"{twilio_sid}:{twilio_token}".encode()).decode()
-            req = urllib.request.Request(url, data=data, headers={"Authorization": f"Basic {auth}"})
-            urllib.request.urlopen(req, timeout=10)
-            return {"ok": True, "sent": True, "via": "Twilio"}
-        except Exception as e:
-            pass
-    
-    print(f"[SMS] To: {phone} | {alert.message}")
-    return {"ok": True, "sent": False, "via": "demo_mode", "note": "Add TWILIO_SID + TWILIO_TOKEN + TWILIO_FROM env vars on Render for real SMS"}
+    try:
+        data = urllib.parse.urlencode({
+            "phone": phone,
+            "message": alert.message[:160],
+            "key": "textbelt",  # Free tier key
+        }).encode()
+        req = urllib.request.Request(
+            "https://textbelt.com/text",
+            data=data,
+            headers={"Content-Type": "application/x-www-form-urlencoded"}
+        )
+        resp = urllib.request.urlopen(req, timeout=10)
+        result = json.loads(resp.read().decode())
+        if result.get("success"):
+            return {"ok": True, "sent": True, "via": "TextBelt", "quota_remaining": result.get("quotaRemaining", "?")}
+        else:
+            return {"ok": True, "sent": False, "via": "TextBelt", "error": result.get("error", "unknown")}
+    except Exception as e:
+        print(f"[SMS] To: {phone} | {alert.message}")
+        return {"ok": True, "sent": False, "via": "fallback", "note": f"TextBelt error: {e}. Free tier allows 1 SMS/day."}
 
 @app.get("/api/sms/recipients")
 async def get_sms_recipients():
     return {"recipients": sms_recipients}
-
-# ---- WhatsApp Alerts API (CallMeBot - free) ----
-@app.post("/api/whatsapp/register")
-async def register_whatsapp(alert: WhatsAppAlert):
-    if alert.phone not in whatsapp_recipients:
-        whatsapp_recipients.append(alert.phone)
-    return {"ok": True, "message": f"Phone {alert.phone} registered for WhatsApp alerts", "total_recipients": len(whatsapp_recipients), "note": "User must first send 'I allow sendmessage' to +34644704698 on WhatsApp"}
-
-@app.post("/api/whatsapp/send")
-async def send_whatsapp(alert: WhatsAppAlert):
-    phone = format_india_phone(alert.phone)
-    if alert.phone not in whatsapp_recipients:
-        whatsapp_recipients.append(alert.phone)
-    
-    # Try Twilio WhatsApp first
-    twilio_sid = os.getenv("TWILIO_SID", "")
-    twilio_token = os.getenv("TWILIO_TOKEN", "")
-    twilio_from = os.getenv("TWILIO_WHATSAPP_FROM", "")
-    if twilio_sid and twilio_token and twilio_from:
-        try:
-            url = f"https://api.twilio.com/2010-04-01/Accounts/{twilio_sid}/Messages.json"
-            data = urllib.parse.urlencode({"To": f"whatsapp:{phone}", "From": twilio_from, "Body": alert.message[:160]}).encode()
-            auth = base64.b64encode(f"{twilio_sid}:{twilio_token}".encode()).decode()
-            req = urllib.request.Request(url, data=data, headers={"Authorization": f"Basic {auth}"})
-            urllib.request.urlopen(req, timeout=10)
-            return {"ok": True, "sent": True, "via": "Twilio WhatsApp"}
-        except Exception as e:
-            pass
-    
-    # Try CallMeBot free API
-    callmebot_key = os.getenv("CALLMEBOT_API_KEY", "")
-    if callmebot_key:
-        try:
-            encoded_msg = urllib.parse.quote(alert.message[:160])
-            url = f"https://api.callmebot.com/whatsapp.php?phone={phone}&text={encoded_msg}&apikey={callmebot_key}"
-            urllib.request.urlopen(url, timeout=10)
-            return {"ok": True, "sent": True, "via": "CallMeBot WhatsApp"}
-        except Exception as e:
-            pass
-    
-    print(f"[WhatsApp] To: {phone} | {alert.message}")
-    return {"ok": True, "sent": False, "via": "demo_mode", "note": "Add CALLMEBOT_API_KEY env var on Render. User must send 'I allow sendmessage' to +34644704698 on WhatsApp first."}
-
-@app.get("/api/whatsapp/recipients")
-async def get_whatsapp_recipients():
-    return {"recipients": whatsapp_recipients}
 
 # ---- Historical Landslide Data ----
 @app.get("/api/historical")
@@ -373,7 +324,7 @@ async def get_historical():
 # ---- Health check ----
 @app.get("/health")
 async def health():
-    return {"status": "ok", "readings": len(sensor_data), "reports": len(citizen_reports), "sms_recipients": len(sms_recipients), "whatsapp_recipients": len(whatsapp_recipients)}
+    return {"status": "ok", "readings": len(sensor_data), "reports": len(citizen_reports), "sms_recipients": len(sms_recipients)}
 
 
 # ---- WebSocket for real-time dashboard updates ----

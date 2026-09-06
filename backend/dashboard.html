@@ -11,8 +11,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-<script src="https://unpkg.com/globe.gl@2.31.1/dist/globe.gl.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Devanagari:wght@400;500;600&family=Noto+Sans+Bengali:wght@400;500;600&family=Noto+Sans+Meetei+Mayek:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -188,7 +186,6 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
 .log-empty svg{width:13px;height:13px;}
 /* Map */
 .map-card{border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:12px 16px;}
-#globe-overview canvas{border-radius:14px;}
 #map{height:300px;z-index:1;background:var(--surface-2);}
 .leaflet-container{background:var(--surface-2)!important;}
 .info-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);}
@@ -481,19 +478,19 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
         <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l4-6 4 3 5-8"/></svg><span data-i18n="live_log">Live log</span><span class="line"></span></div>
         <div class="log-wrap" id="log-wrap"><div class="log-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Waiting for data</div></div>
       </div>
-      <div class="card" style="border-color:var(--ochre);">
-        <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg><span data-i18n="sms_title">SMS / WhatsApp Alerts</span><span class="line"></span></div>
-        <div style="background:var(--ochre-dim);border:1px solid var(--ochre);border-radius:10px;padding:12px;text-align:center;">
-          <div style="font-size:13px;color:var(--ochre);font-weight:600;margin-bottom:4px;">🔜 Coming Soon</div>
-          <div style="font-size:11px;color:var(--text-muted);line-height:1.5;">SMS & WhatsApp alerts are planned for the next phase.<br>Currently using browser notifications + siren + vibration.</div>
-          <div style="font-size:10px;color:var(--text-muted);margin-top:8px;border-top:1px solid var(--border);padding-top:8px;">Requires SMS API subscription funding (Twilio/MSG91)</div>
+      <div class="card">
+        <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg><span data-i18n="sms_title">SMS Alerts</span><span class="line"></span></div>
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;"><span data-i18n="sms_sub">Free SMS via TextBelt (1/day) — register phone for danger alerts</span></div>
+        <div class="sms-row">
+          <input class="sms-input" id="sms-phone" placeholder="9876543210" maxlength="10">
+          <button class="sms-btn" onclick="registerSMS()">Register</button>
         </div>
+        <div class="sms-list" id="sms-list"></div>
       </div>
     </div>
   </div>
-  <div class="map-card" style="height:320px;position:relative;">
-    <div id="globe-overview" style="width:100%;height:100%;"></div>
-    <div style="position:absolute;bottom:8px;left:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:10px;color:var(--text-muted);z-index:10;">🌍 Live OSINT Globe — Rotate & Zoom</div>
+  <div class="map-card">
+    <div id="map"></div>
   </div>
 </div>
 
@@ -656,7 +653,6 @@ function switchTab(name, el){
   document.getElementById('tab-'+name).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   el.classList.add('active');
-  if(name==='overview')initGlobe();
   if(name==='map'&&!gisMapReady) initGISMap();
   if(name==='report')loadReports();
   if(name==='history')loadHistory();
@@ -679,112 +675,15 @@ function stopContinuousVibrate(){if(vibInterval){clearInterval(vibInterval);vibI
 function toggleSiren(){sirenOn=!sirenOn;$('siren-btn').classList.toggle('on',sirenOn);$('siren-state').textContent=sirenOn?'On':'Off';if(sirenOn){initAudio();if(lastStatus!=='safe')startSiren();}else stopSiren();}
 function toggleVibrate(){vibOn=!vibOn;$('vib-btn').classList.toggle('on',vibOn);$('vib-state').textContent=vibOn?'On':'Off';if(vibOn){navigator.vibrate&&navigator.vibrate(200);if(lastStatus==='danger')startContinuousVibrate();}else stopContinuousVibrate();}
 
-// ===== 3D GLOBE (Overview) =====
-let globeInitialized=false;
-let globeObj=null;
-const osintData={earthquakes:[],fires:[],alerts:[]};
-
-function initGlobe(){
-  if(globeInitialized)return;
-  const container=document.getElementById('globe-overview');
-  if(!container)return;
-  globeInitialized=true;
-
-  globeObj=Globe()(container)
-    .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
-    .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
-    .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
-    .atmosphereColor('#3a228a')
-    .atmosphereAltitude(0.25)
-    .showGraticules()
-    .pointOfView({lat:25.5,lng:91.9,altitude:2.5})
-    .onGlobeReady(()=>{
-      // Auto-rotate
-      globeObj.controls().autoRotate=true;
-      globeObj.controls().autoRotateSpeed=0.3;
-      // Load OSINT data
-      loadOSINT();
-    });
-
-  // Static NER region markers
-  const nerMarkers=[
-    {lat:25.67,lng:91.88,size:0.8,color:'#C25B45',label:'Gangtok NH10',risk:72},
-    {lat:25.57,lng:91.89,size:0.7,color:'#6FA97D',label:'Shillong',risk:48},
-    {lat:24.80,lng:93.93,size:0.6,color:'#D69A4E',label:'Imphal',risk:58},
-    {lat:25.67,lng:94.10,size:0.6,color:'#6FA97D',label:'Kohima',risk:35},
-    {lat:23.83,lng:91.28,size:0.7,color:'#D69A4E',label:'Agartala',risk:52},
-    {lat:23.73,lng:92.72,size:0.5,color:'#6FA97D',label:'Aizawl',risk:30},
-    {lat:25.25,lng:92.58,size:0.6,color:'#C25B45',label:'Haflong',risk:68},
-    {lat:25.30,lng:91.70,size:0.5,color:'#6FA97D',label:'Tura',risk:28},
-  ];
-
-  globeObj
-    .pointsData(nerMarkers)
-    .pointLat('lat')
-    .pointLng('lng')
-    .pointColor('color')
-    .pointAltitude(0.01)
-    .pointRadius('size')
-    .pointLabel(d=>`<div style='background:rgba(22,27,22,0.95);padding:8px 12px;border-radius:8px;border:1px solid ${d.color};font-size:12px;color:#ECEFE9;max-width:180px;'><b>${d.label}</b><br>Risk: <span style='color:${d.color}'>${d.risk}/100</span></div>`);
-
-  // Corridor routes
-  const corridors=[
-    {coords:[{lat:26.14,lng:91.74},{lat:25.67,lng:91.88},{lat:25.30,lng:91.90}],color:'#6FA97D'},
-    {coords:[{lat:25.67,lng:94.10},{lat:25.40,lng:94.00},{lat:25.00,lng:93.93},{lat:24.80,lng:93.93}],color:'#6C8B9E'},
-    {coords:[{lat:24.80,lng:92.70},{lat:24.50,lng:93.20},{lat:24.80,lng:93.93}],color:'#D69A4E'},
-  ];
-  globeObj
-    .pathsData(corridors)
-    .pathPoints('coords')
-    .pathPointLat('lat')
-    .pathPointLng('lng')
-    .pathColor('color')
-    .pathDashLength(0.01)
-    .pathDashGap(0.005)
-    .pathStroke(1.5)
-    .pathDashAnimateTime(2000);
-}
-
-// Load OSINT data from free APIs
-async function loadOSINT(){
-  // USGS Earthquakes (last 24h, near NE India)
-  try{
-    const r=await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson');
-    const j=await r.json();
-    const nerQuakes=j.features.filter(f=>{
-      const[lng,lat]=f.geometry.coordinates;
-      return lat>20&&lat<30&&lng>88&&lng<98&&f.properties.mag>=3.0;
-    }).map(f=>{
-      const[lng,lat,mag]=f.geometry.coordinates;
-      return{lat,lng,size:Math.max(0.1,mag/5),color:mag>=5?'#C25B45':mag>=4?'#D69A4E':'#6FA97D',label:`M${mag.toFixed(1)} — ${f.properties.place}`};
-    });
-    if(nerQuakes.length>0&&globeObj){
-      const current=globeObj.pointsData();
-      globeObj.pointsData([...current,...nerQuakes]);
-    }
-  }catch(e){console.log('Earthquake fetch failed:',e);}
-
-  // ReliefWeb disaster alerts
-  try{
-    const r=await fetch('https://api.reliefweb.int/v1/disasters?appname=landsafe&filter[field]=country.iso3&filter[value]=IND&limit=5&sort[]=date:desc');
-    const j=await r.json();
-    const alerts=j.data.map(d=>({lat:25.5+(Math.random()-0.5)*3,lng:91.9+(Math.random()-0.5)*5,size:0.3,color:'#D69A4E',label:`⚠️ ${d.fields.name}`}));
-    if(alerts.length>0&&globeObj){
-      const current=globeObj.pointsData();
-      globeObj.pointsData([...current,...alerts]);
-    }
-  }catch(e){console.log('ReliefWeb fetch failed:',e);}
-}
-
-// Update globe with live sensor data
+// Overview map
+const map=L.map('map',{zoomControl:true,attributionControl:false}).setView([25.5,91.9],7);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxZoom:16}).addTo(map);
+let sensorMarker=null,riskCircle=null,neighborMarkersAdded=false;
 function updateMap(lat,lng,riskScore,status){
-  if(!globeObj)return;
   const c=status==='danger'?'#C25B45':status==='warning'?'#D69A4E':'#6FA97D';
-  // Add sensor point to globe
-  const sensorPoint={lat,lng,size:0.5,color:c,label:'ESP32 Sensor',risk:riskScore};
-  const current=globeObj.pointsData();
-  const withoutSensor=current.filter(p=>p.label!=='ESP32 Sensor');
-  globeObj.pointsData([...withoutSensor,sensorPoint]);
+  if(!sensorMarker){sensorMarker=L.circleMarker([lat,lng],{radius:8,fillColor:c,color:'#ECEFE9',weight:2,fillOpacity:0.8}).addTo(map).bindPopup('<b>Landsafe Sensor</b><br>sensor-001');}else{sensorMarker.setStyle({fillColor:c});}
+  if(!riskCircle){riskCircle=L.circle([lat,lng],{radius:1000+riskScore*50,fillColor:c,color:c,weight:1,fillOpacity:0.1+riskScore*0.003}).addTo(map);}else{riskCircle.setStyle({fillColor:c,color:c,fillOpacity:0.1+riskScore*0.003});riskCircle.setRadius(1000+riskScore*50);}
+  if(!neighborMarkersAdded){neighborMarkersAdded=true;[[25.67,91.88],[25.45,92.10],[25.55,91.75],[25.35,91.95],[25.70,92.05],[25.50,91.60]].forEach(([nlat,nlng])=>{const r=Math.max(0,riskScore+(Math.random()-0.5)*30);const cc=r>=70?'#C25B45':r>=40?'#D69A4E':'#6FA97D';L.circleMarker([nlat,nlng],{radius:4,fillColor:cc,color:cc,weight:1,fillOpacity:0.5}).addTo(map);});}
 }
 function update(data,risk){
   const{tilt,moisture,status,device_id,timestamp}=data;const m=moisture||0;
@@ -819,7 +718,7 @@ function update(data,risk){
 async function poll(){try{const r=await fetch(API);const j=await r.json();if(j.data&&j.data.timestamp!==lastTS){lastTS=j.data.timestamp;lastDataTime=Date.now();update(j.data,j.risk);$('conn-dot').className='dot on pulse';$('conn-label').textContent='Live';}else if(Date.now()-lastDataTime>10000&&lastDataTime>0){goOffline();}}catch(e){goOffline();}}
 function goOffline(){$('conn-dot').className='dot pulse';$('conn-label').textContent='Offline';$('badge').textContent='OFFLINE';$('badge').className='badge-pill';$('dev-status').textContent='OFFLINE';$('dev-status').style.color='var(--text-muted)';$('tilt-dev').textContent='Sensor disconnected — waiting for data…';$('needle').style.transform='translateX(-50%) rotate(0deg)';$('tilt-val').textContent='0.00°';$('tilt-val').className='tilt-num safe';$('moisture-val').textContent='0%';$('moisture-val').style.color='var(--slate)';$('moisture-bar').style.width='4%';$('moisture-bar').className='blue';$('water-density').textContent='—';$('density-bar').style.width='0%';$('density-bar').className='blue';$('risk-level').textContent='Low';$('risk-level').style.color='#6FA97D';$('risk-score').textContent='0%';$('risk-bar').style.width='0%';$('risk-bar').className='risk-bar-fill low';$('prediction-text').textContent='Sensor offline — awaiting data…';$('risk-trend').textContent='stable';$('risk-trend').style.color='var(--text-muted)';$('overlay').className='overlay';$('alert-bar').className='alert-bar';stopSiren();stopContinuousVibrate();}
 async function loadHist(){try{const r=await fetch(HIST);const j=await r.json();if(j.data&&j.data.length>0){const riskR=await fetch(RISK);const riskJ=await riskR.json();update(j.data[j.data.length-1],riskJ.data);j.data.slice(-20).forEach(d=>{const t=new Date(d.timestamp).toLocaleTimeString();const e=document.createElement('div');e.className='log-entry';const m=d.moisture||0;e.innerHTML=`<span class="log-t">${t}</span><span class="log-v ${d.status}">${d.tilt.toFixed(2)}° M:${m.toFixed(0)}% ${d.status==='danger'?'🔴':d.status==='warning'?'🟡':'🟢'}</span>`;$('log-wrap').appendChild(e);});}}catch(e){}}
-loadHist();setInterval(poll,1000);initGlobe();
+loadHist();setInterval(poll,1000);
 
 // ===== GIS MAP TAB =====
 let gisMapReady=false,gisMap=null;
@@ -1167,7 +1066,7 @@ const LANG_NAMES={en:'EN',hi:'HI',as:'AS',bn:'BN',mni:'MN'};
 const LANG_FONTS={en:'var(--font-body)',hi:"'Noto Sans Devanagari',sans-serif",as:"'Noto Sans Bengali',sans-serif",bn:"'Noto Sans Bengali',sans-serif",mni:"'Noto Sans Meetei Mayek',sans-serif"};
 let currentLang='en';
 const T={
-  en:{landing_risk:'Landslide risk',tilt_angle:'Tilt Angle',soil_moisture:'Soil moisture',density:'Density',sensor_info:'Sensor info',alert_controls:'Alert controls',siren:'Siren',vibrate:'Vibrate',live_log:'Live log',waiting:'Waiting for data',offline_msg:'Sensor disconnected',dry:'Dry',saturated:'Saturated',trend:'Trend',stable:'stable',increasing:'increasing',decreasing:'decreasing',connecting:'Connecting',live:'Live',offline:'Offline',safe:'SAFE',warning:'WARNING',danger:'DANGER',nav_overview:'Overview',nav_map:'GIS Map',nav_stations:'Stations',nav_alerts:'Alerts',nav_incident:'Incident',nav_report:'Report',nav_history:'History',sms_title:'Alert Contacts',sms_sub:'Register phone for SMS/WhatsApp alerts on danger',sms_placeholder:'9876543210',sms_register:'Register',sms_registered:'Registered',history_title:'Historical Landslide Data — NER',incidents_by_year:'Incidents by Year',casualties_by_state:'Casualties by State',incident_timeline:'Incident Timeline',total_incidents:'Total Incidents',total_deaths:'Total Deaths',years_covered:'Years Covered',report_title:'Submit Field Report',report_sub:'Report cracks, slope damage, blocked roads, or flooding with geo-tagged photos',report_type:'Report Type',severity:'Severity Level',photo:'Photo (optional)',tap_photo:'Tap to take photo or choose from gallery',your_location:'Your Location',detect_location:'Detect My Location',description:'Description',your_name:'Your Name (optional)',submit:'Submit Report',all_reports:'All Reports',on_map:'On Map',no_reports:'No field reports yet. Be the first to report a hazard!'},
+  en:{landing_risk:'Landslide risk',tilt_angle:'Tilt Angle',soil_moisture:'Soil moisture',density:'Density',sensor_info:'Sensor info',alert_controls:'Alert controls',siren:'Siren',vibrate:'Vibrate',live_log:'Live log',waiting:'Waiting for data',offline_msg:'Sensor disconnected',dry:'Dry',saturated:'Saturated',trend:'Trend',stable:'stable',increasing:'increasing',decreasing:'decreasing',connecting:'Connecting',live:'Live',offline:'Offline',safe:'SAFE',warning:'WARNING',danger:'DANGER',nav_overview:'Overview',nav_map:'GIS Map',nav_stations:'Stations',nav_alerts:'Alerts',nav_incident:'Incident',nav_report:'Report',nav_history:'History',sms_title:'SMS Alerts',sms_sub:'Register phone to receive SMS on danger',sms_placeholder:'9876543210',sms_register:'Register',sms_registered:'Registered',history_title:'Historical Landslide Data — NER',incidents_by_year:'Incidents by Year',casualties_by_state:'Casualties by State',incident_timeline:'Incident Timeline',total_incidents:'Total Incidents',total_deaths:'Total Deaths',years_covered:'Years Covered',report_title:'Submit Field Report',report_sub:'Report cracks, slope damage, blocked roads, or flooding with geo-tagged photos',report_type:'Report Type',severity:'Severity Level',photo:'Photo (optional)',tap_photo:'Tap to take photo or choose from gallery',your_location:'Your Location',detect_location:'Detect My Location',description:'Description',your_name:'Your Name (optional)',submit:'Submit Report',all_reports:'All Reports',on_map:'On Map',no_reports:'No field reports yet. Be the first to report a hazard!'},
   hi:{landing_risk:'भूस्खलन जोखिम',tilt_angle:'झुकाव कोण',nav_overview:'ओवरव्यू',nav_map:'मानचित्र',nav_stations:'स्टेशन',nav_alerts:'अलर्ट',nav_incident:'घटना',nav_report:'रिपोर्ट',nav_history:'इतिहास',soil_moisture:'मिट्टी की नमी',density:'घनत्व',sensor_info:'सेंसर जानकारी',alert_controls:'अलर्ट नियंत्रण',siren:'सायरन',vibrate:'वाइब्रेट',live_log:'लाइव लॉग',waiting:'डेटा की प्रतीक्षा है',offline_msg:'सेंसर डिस्कनेक्ट',dry:'सूखी',saturated:'संतृप्त',trend:'प्रवृत्ति',stable:'स्थिर',increasing:'बढ़ रही',decreasing:'घट रही',connecting:'कनेक्ट हो रहा है',live:'लाइव',offline:'ऑफलाइन',safe:'सुरक्षित',warning:'चेतावनी',danger:'खतरा',sms_title:'SMS अलर्ट',sms_sub:'खतरे पर SMS प्राप्त करने के लिए फोन नंबर दर्ज करें',sms_placeholder:'9876543210',sms_register:'रजिस्टर',sms_registered:'दर्ज',history_title:'ऐतिहासिक भूस्खलन डेटा — NER',incidents_by_year:'वर्ष अनुसार घटनाएं',casualties_by_state:'राज्य अनुसार हताहत',incident_timeline:'घटना समयरेखा',total_incidents:'कुल घटनाएं',total_deaths:'कुल मौतें',years_covered:'वर्ष कवरेज',report_title:'फील्ड रिपोर्ट जमा करें',report_sub:'भूस्खलन, दरार, बंद सड़क, या बाढ़ की रिपोर्ट करें',report_type:'रिपोर्ट प्रकार',severity:'गंभीरता स्तर',photo:'फोटो (वैकल्पिक)',tap_photo:'फोटो लेने के लिए टैप करें',your_location:'आपका स्थान',detect_location:'स्थान पता करें',description:'विवरण',your_name:'आपका नाम (वैकल्पिक)',submit:'रिपोर्ट जमा करें',all_reports:'सभी रिपोर्ट',on_map:'मानचित्र पर',no_reports:'अभी तक कोई रिपोर्ट नहीं। पहली रिपोर्ट दर्ज करें!'},
   as:{landing_risk:'ভূমিধসৰ বিপদ',tilt_angle:'ঢাল কোণ',nav_overview:'সারসংক্ষেপ',nav_map:'মানচিত্ৰ',nav_stations:'ষ্টেচন',nav_alerts:'সতৰ্কতা',nav_incident:'ঘটনা',nav_report:'প্ৰতিবেদন',nav_history:'ইতিহাস',soil_moisture:'মাটীৰ আৰ্দ্ৰতা',density:'ঘনত্ব',sensor_info:'ছেন্সৰ তথ্য',alert_controls:'সতৰ্কতা নিয়ন্ত্ৰণ',siren:'ছাইৰেন',vibrate:'কম্পন',live_log:'লাইভ লগ',waiting:'ডাটাৰ অপেক্ষাত',offline_msg:'ছেন্সৰ সংযোগ বিচ্ছিন্ন',dry:'শুকনা',saturated:'পৰিপূৰ্ণ',trend:'প্ৰৱণতা',stable:'স্থিৰ',increasing:'বৃদ্ধি পাই আছে',decreasing:'হ্ৰাস পাই আছে',connecting:'সংযোগ কৰি আছে',live:'লাইভ',offline:'অফলাইন',safe:'নিৰাপদ',warning:'সতৰ্কতা',danger:'বিপদ',sms_title:'SMS সতৰ্কতা',sms_sub:'বিপদত SMS পাবলৈ ফোন নম্বৰ দিয়ক',sms_placeholder:'9876543210',sms_register:'ৰেজিষ্টাৰ',sms_registered:'ৰেজিষ্টাৰ্ড',history_title:'ঐতিহাসিক ভূমিধসৰ ডাটা — NER',incidents_by_year:'বছৰ অনুযায়ী ঘটনা',casualties_by_state:'ৰাজ্য অনুযায়ী ক্ষতিগ্ৰস্ত',incident_timeline:'ঘটনাৰ সময়ৰেখা',total_incidents:'মুঠ ঘটনা',total_deaths:'মুঠ মৃত্যু',years_covered:'বছৰ পৰিসীমা',report_title:'ফিল্ড প্ৰতিবেদন দিয়ক',report_sub:'ভূমিধস, ফাটল, বন্ধ ৰাস্তাৰ প্ৰতিবেদন দিয়ক',report_type:'প্ৰতিবেদন প্ৰকাৰ',severity:'গুৰুতৱ স্তৰ',photo:'ফটো (ঐচ্ছিক)',tap_photo:'ফটো লিবলৈ টেপ কৰক',your_location:'আপোনাৰ স্থান',detect_location:'স্থান নিৰ্ধাৰণ কৰক',description:'বিৱৰণ',your_name:'আপোনাৰ নাম (ঐচ্ছিক)',submit:'প্ৰতিবেদন দিয়ক',all_reports:'সকলো প্ৰতিবেদন',on_map:'মানচিত্ৰত',no_reports:'এতিয়াও কোনো প্ৰতিবেদন নাই!'},
   bn:{landing_risk:'ভূমিধ্বসের ঝুঁকি',tilt_angle:'ঢাল কোণ',nav_overview:'সারসংক্ষেপ',nav_map:'মানচিত্র',nav_stations:'স্টেশন',nav_alerts:'সতর্কতা',nav_incident:'ঘটনা',nav_report:'রিপোর্ট',nav_history:'ইতিহাস',soil_moisture:'মাটির আর্দ্রতা',density:'ঘনত্ব',sensor_info:'সেন্সর তথ্য',alert_controls:'সতর্কতা নিয়ন্ত্রণ',siren:'সাইরেন',vibrate:'কম্পন',live_log:'লাইভ লগ',waiting:'ডাটার অপেক্ষায়',offline_msg:'সেন্সর সংযোগ বিচ্ছিন্ন',dry:'শুকনো',saturated:'পরিপূর্ণ',trend:'প্রবণতা',stable:'স্থির',increasing:'বৃদ্ধি পাচ্ছে',decreasing:'হ্রাস পাচ্ছে',connecting:'সংযোগ হচ্ছে',live:'লাইভ',offline:'অফলাইন',safe:'নিরাপদ',warning:'সতর্কতা',danger:'বিপদ',sms_title:'SMS সতর্কতা',sms_sub:'বিপদে SMS পেতে ফোন নম্বর দিন',sms_placeholder:'9876543210',sms_register:'নিবন্ধন',sms_registered:'নিবন্ধিত',history_title:'ঐতিহাসিক ভূমিধ্বসের ডাটা — NER',incidents_by_year:'বছর অনুযায়ী ঘটনা',casualties_by_state:'রাজ্য অনুযায়ী ক্ষতিগ্রস্ত',incident_timeline:'ঘটনার সময়রেখা',total_incidents:'মোট ঘটনা',total_deaths:'মোট মৃত্যু',years_covered:'বছর পরিসীমা',report_title:'ফিল্ড রিপোর্ট জমা দিন',report_sub:'ভূমিধ্বস, ফাটল, বন্ধ রাস্তার রিপোর্ট দিন',report_type:'রিপোর্ট প্রকার',severity:'গুরুত্ব স্তর',photo:'ছবি (ঐচ্ছিক)',tap_photo:'ছবি তুলতে ট্যাপ করুন',your_location:'আপনার অবস্থান',detect_location:'অবস্থান সনাক্ত করুন',description:'বিবরণ',your_name:'আপনার নাম (ঐচ্ছিক)',submit:'রিপোর্ট জমা দিন',all_reports:'সব রিপোর্ট',on_map:'মানচিত্রে',no_reports:'এখনো কোনো রিপোর্ট নেই!'},
@@ -1237,10 +1136,9 @@ async function sendAutoSMS(tilt,moisture){
   if(Date.now()-lastSMSAlert<300000)return;
   lastSMSAlert=Date.now();
   if(smsRecipients.length===0)return;
-  const msg=`DANGER ALERT: Tilt ${tilt.toFixed(1)}\u00b0, Moisture ${moisture.toFixed(0)}%. Immediate action needed!`;
+  const msg=`DANGER ALERT: Tilt ${tilt.toFixed(1)}°, Moisture ${moisture.toFixed(0)}%. Immediate action needed!`;
   smsRecipients.forEach(async phone=>{
     try{await fetch(`${location.origin}/api/sms/send`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,message:msg,severity:'danger'})});}catch(e){}
-    try{await fetch(`${location.origin}/api/whatsapp/send`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,message:msg,severity:'danger'})});}catch(e){}
   });
 }
 async function registerSMS(){
