@@ -478,13 +478,18 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
         <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l4-6 4 3 5-8"/></svg><span data-i18n="live_log">Live log</span><span class="line"></span></div>
         <div class="log-wrap" id="log-wrap"><div class="log-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Waiting for data</div></div>
       </div>
-      <div class="card" style="border-color:var(--ochre);">
-        <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg><span data-i18n="sms_title">SMS / WhatsApp Alerts</span><span class="line"></span></div>
-        <div style="background:var(--ochre-dim);border:1px solid var(--ochre);border-radius:10px;padding:12px;text-align:center;">
-          <div style="font-size:13px;color:var(--ochre);font-weight:600;margin-bottom:4px;">Coming Soon</div>
-          <div style="font-size:11px;color:var(--text-muted);line-height:1.5;">SMS & WhatsApp alerts are planned for the next phase.<br>Currently using browser notifications + siren + vibration.</div>
-          <div style="font-size:10px;color:var(--text-muted);margin-top:8px;border-top:1px solid var(--border);padding-top:8px;">Requires SMS API subscription funding</div>
-        </div>
+      <div class="card" style="border-color:var(--ochre);">
+
+        <div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg><span data-i18n="sms_title">SMS / WhatsApp Alerts</span><span class="line"></span></div>
+
+        <div style="background:var(--ochre-dim);border:1px solid var(--ochre);border-radius:10px;padding:12px;text-align:center;">
+
+          <div style="font-size:13px;color:var(--ochre);font-weight:600;margin-bottom:4px;">Coming Soon</div>
+
+          <div style="font-size:11px;color:var(--text-muted);line-height:1.5;">SMS & WhatsApp alerts are being integrated for real-time push notifications to registered users during danger events.</div>
+
+        </div>
+
       </div>
     </div>
   </div>
@@ -1164,5 +1169,29 @@ function checkNotif(status,tilt,prevStatus){
   } catch(e){}
 }
 </script>
+
+<!-- ===== CONTACT FOOTER ===== -->
+<div style="max-width:420px;margin:20px auto 0;padding:0 16px;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;text-align:center;">
+    <div style="font-family:var(--font-display);font-weight:600;font-size:14px;margin-bottom:12px;">LANDSAFE AI</div>
+    <div style="font-size:11px;color:var(--text-muted);margin-bottom:14px;">AI-Powered Landslide Monitoring for North Eastern India</div>
+    <div style="display:flex;flex-direction:column;gap:10px;align-items:center;">
+      <a href="mailto:crastacalrin@gmail.com" style="display:flex;align-items:center;gap:8px;color:var(--text-secondary);text-decoration:none;font-size:12px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        crastacalrin@gmail.com
+      </a>
+      <a href="tel:+917022941015" style="display:flex;align-items:center;gap:8px;color:var(--text-secondary);text-decoration:none;font-size:12px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        +91 70229 41015
+      </a>
+      <a href="https://instagram.com/crastacalrin" target="_blank" style="display:flex;align-items:center;gap:8px;color:var(--text-secondary);text-decoration:none;font-size:12px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        @crastacalrin
+      </a>
+    </div>
+    <div style="font-size:9px;color:var(--text-muted);margin-top:14px;border-top:1px solid var(--border);padding-top:10px;">Built by Scapegoats</div>
+  </div>
+</div>
+
 </body>
 </html>
