@@ -292,6 +292,12 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
 .timeline-date{font-size:9px;color:var(--text-muted);font-family:var(--font-mono);}
 .timeline-detail{font-size:11px;color:var(--text-secondary);line-height:1.5;}
 .timeline-deaths{display:inline-block;background:var(--rust-dim);color:var(--rust);padding:2px 6px;border-radius:4px;font-size:9px;font-family:var(--font-mono);margin-top:4px;}
+.state-score-list{display:flex;flex-direction:column;gap:10px;}
+.state-score-row{display:flex;align-items:center;gap:10px;}
+.state-score-name{width:78px;flex-shrink:0;font-size:10px;color:var(--text-secondary);font-family:var(--font-mono);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.state-score-track{flex:1;height:14px;background:var(--surface-2);border:1px solid var(--border);border-radius:7px;overflow:hidden;position:relative;}
+.state-score-fill{height:100%;border-radius:7px;min-width:6px;transition:width 0.8s ease;}
+.state-score-val{width:32px;flex-shrink:0;font-size:11px;font-family:var(--font-mono);font-weight:600;color:var(--text-primary);}
 @media(max-width:500px){.hist-summary{grid-template-columns:1fr;}.bar-chart{height:120px;}}
 
 /* ===== REPORT TAB ===== */
@@ -519,7 +525,7 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
   <div class="card-title" style="margin:16px 16px 0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span data-i18n="history_title">Historical Landslide Data — NER</span><span class="line"></span></div>
   <div class="hist-summary" id="hist-summary"></div>
   <div class="hist-chart"><div class="hist-chart-title">Incidents by Year</div><div class="bar-chart" id="bar-chart"></div></div>
-  <div class="hist-chart"><div class="hist-chart-title">Casualties by State</div><div class="bar-chart" id="state-chart"></div></div>
+  <div class="hist-chart"><div class="hist-chart-title">Casualties by State</div><div class="state-score-list" id="state-chart"></div></div>
   <div class="card-title" style="margin:16px 0 8px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>Incident Timeline<span class="line"></span></div>
   <div class="hist-timeline" id="hist-timeline"></div>
 </div>
@@ -1117,7 +1123,7 @@ async function loadHistory(){
     const states=Object.entries(stateCounts).sort((a,b)=>b[1]-a[1]);
     const maxState=Math.max(...states.map(s=>s[1]),1);
     const stateEl=document.getElementById('state-chart');
-    if(stateEl){stateEl.innerHTML=states.map(([s,c])=>{const h=(c/maxState)*130;const col=c>=4?'var(--rust)':c>=2?'var(--ochre)':'var(--moss)';return `<div class="bar-col"><div class="bar" style="height:${h}px;background:${col};"><span class="bar-val">${c}</span></div><span class="bar-label" style="font-size:8px;">${s.substring(0,6)}</span></div>`;}).join('');}
+    if(stateEl){stateEl.innerHTML=states.map(([s,c])=>{const w=(c/maxState)*100;const col=c>=4?'var(--rust)':c>=2?'var(--ochre)':'var(--moss)';return `<div class="state-score-row"><span class="state-score-name">${s}</span><div class="state-score-track"><div class="state-score-fill" style="width:${w}%;background:${col};"></div></div><span class="state-score-val">${c}</span></div>`;}).join('');}
     // Timeline
     const tlEl=document.getElementById('hist-timeline');
     if(tlEl){tlEl.innerHTML=data.sort((a,b)=>b.year-a.year||b.month-a.month).slice(0,15).map(d=>{const sev=d.deaths>=20?'critical':d.deaths>=8?'high':d.deaths>=3?'moderate':'low';const months=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return `<div class="timeline-item"><div class="timeline-dot ${sev}"></div><div class="timeline-content"><div class="timeline-header"><span class="timeline-location">${d.location}</span><span class="timeline-date">${months[d.month]} ${d.year}</span></div><div class="timeline-detail">${d.cause} — ${d.rainfall_mm}mm rainfall${d.road_blocks?`, ${d.road_blocks} road blocks`:''}</div><span class="timeline-deaths">💀 ${d.deaths} deaths${d.injured?`, ${d.injured} injured`:''}</span></div></div>`;}).join('');}
