@@ -872,8 +872,11 @@ function renderIncidents(){
   if(inc.length===0){el.innerHTML+='<div style="text-align:center;padding:40px;color:var(--text-muted);font-family:var(--font-mono);font-size:12px;">No active incidents — all corridors stable.</div>';}
 }
 
-// Generate initial data + refresh every 15 minutes
-function refreshAllData(){generateStationData();renderStations();renderAlerts();renderIncidents();}
+// Generate data + re-render. Only regenerates fake data if real server data isn't loaded (real rows have .real=true).
+function refreshAllData(){
+  if(!stationData.length||!stationData[0].real){generateStationData();}
+  renderStations();renderAlerts();renderIncidents();
+}
 refreshAllData();
 (async()=>{const real=await loadRealStationData();if(real){stationData=real;renderStations();renderAlerts();renderIncidents();}})();
 setInterval(async()=>{const real=await loadRealStationData();if(real){stationData=real;renderStations();renderAlerts();renderIncidents();}},600000);
