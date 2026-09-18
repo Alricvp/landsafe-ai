@@ -1,5 +1,5 @@
 // Landsafe AI Service Worker — Offline Support
-const CACHE_NAME = 'landsafe-v4';
+const CACHE_NAME = 'landsafe-v5';
 const OFFLINE_URLS = [
   '/',
   '/dashboard.html',
@@ -82,4 +82,25 @@ self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
+  // Show notification on behalf of the page (required on Android Chrome)
+  if (event.data && event.data.type === 'notify') {
+    self.registration.showNotification(event.data.title, {
+      body: event.data.body,
+      tag: 'landsafe-alert',
+      renotify: true,
+      vibrate: [300, 120, 300, 120, 300],
+      requireInteraction: event.data.body && event.data.body.includes('DANGER')
+    });
+  }
+});
+
+// Notification tap — focus the app or open it
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cs => {
+      for (const c of cs) { if ('focus' in c) return c.focus(); }
+      return self.clients.openWindow('/');
+    })
+  );
 });

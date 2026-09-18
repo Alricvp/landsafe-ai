@@ -62,7 +62,22 @@ body{background:var(--bg);color:var(--text-primary);font-family:var(--font-body)
 .brand-mark svg{width:16px;height:16px;}
 .brand-text h1{font-family:var(--font-display);font-weight:600;font-size:15px;background:linear-gradient(135deg,var(--moss),#A9C9AF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .brand-text .sub{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;}
-.header-right{display:flex;align-items:center;gap:12px;}
+.header-right{display:flex;align-items:center;gap:6px;}
+/* Mobile: compress header so nothing overflows on Android */
+@media (max-width:420px){
+  .header{padding:10px 12px;gap:8px;}
+  .brand-text h1{font-size:13px;}
+  .brand-text .sub{display:none;}
+  .brand-mark{width:28px;height:28px;}
+  .header-right{gap:5px;}
+  .status-pill{padding:3px 6px;font-size:9px;max-width:74px;}
+  .status-pill span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  #conn-label{max-width:52px;}
+  .badge-pill{font-size:8px;padding:2px 6px;}
+  .region-chip{max-width:88px;}
+  .region-chip #region-chip-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60px;}
+  .lang-switch{padding:4px 7px;font-size:9.5px;}
+}
 .header-icon{width:32px;height:32px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:0.2s;}
 .header-icon:hover{border-color:var(--border-strong);}
 .header-icon svg{width:14px;height:14px;color:var(--text-secondary);}  .status-pill{display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);padding:4px 8px;border:1px solid var(--border-strong);border-radius:16px;background:var(--surface-2);}
@@ -996,12 +1011,27 @@ function sendChat(){
   body.scrollTop=body.scrollHeight;
 }
 
+// ===== SERVICE WORKER (required for Android notifications + offline PWA) =====
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js').then(()=>console.log('[SW] registered')).catch(e=>console.log('[SW] failed:',e));
+}
+
 // ===== BROWSER NOTIFICATIONS =====
 let notifAsked=false;
 function requestNotifPermission(){if(notifAsked)return;notifAsked=true;if('Notification' in window && Notification.permission==='default')Notification.requestPermission();}
 document.addEventListener('click',requestNotifPermission,{once:true});
 document.addEventListener('touchstart',requestNotifPermission,{once:true});
-function sendBrowserNotif(title,body){try{if('Notification' in window && Notification.permission==='granted')new Notification(title,{body});}catch(e){}}
+function sendBrowserNotif(title,body){try{
+  if('Notification' in window && Notification.permission==='granted'){
+    if(navigator.serviceWorker && navigator.serviceWorker.controller){
+      navigator.serviceWorker.controller.postMessage({type:'notify',title,body});
+    }else if(navigator.serviceWorker){
+      navigator.serviceWorker.ready.then(reg=>reg.showNotification(title,{body,tag:'landsafe-alert'})).catch(()=>{});
+    }else{
+      new Notification(title,{body});
+    }
+  }
+}catch(e){}}
 
 // ===== CITIZEN REPORTING =====
 let selectedSeverity='low';
