@@ -324,16 +324,16 @@ async def get_historical():
 # ---- REAL regional monitoring stations (NER corridors) ----
 # Real coordinates along known landslide-prone NER corridors.
 NER_STATIONS = [
-    {"id": "ESP32-NER-001", "name": "Gangtok — 32nd Mile NH10 Corridor", "loc": "East Sikkim, Sikkim",      "lat": 27.18, "lng": 88.53, "slope": 42.5},
-    {"id": "ESP32-NER-002", "name": "Haflong — Jatinga Valley Escarpment", "loc": "Dima Hasao, Assam",        "lat": 25.18, "lng": 93.02, "slope": 38.0},
-    {"id": "ESP32-NER-003", "name": "Cherrapunji — Shella Gorge Rim",      "loc": "East Khasi Hills, Meghalaya","lat": 25.30, "lng": 91.70, "slope": 48.0},
-    {"id": "ESP32-NER-004", "name": "Guwahati — Khasi Hills NH6 Section",  "loc": "Kamrup, Assam",             "lat": 26.14, "lng": 91.74, "slope": 35.0},
-    {"id": "ESP32-NER-005", "name": "Kohima — Dimapur NH2 Stretch",        "loc": "Kohima, Nagaland",          "lat": 25.67, "lng": 94.11, "slope": 45.0},
-    {"id": "ESP32-NER-006", "name": "Aizawl — Reiek Tlang Ridge",          "loc": "Mamit, Mizoram",            "lat": 23.73, "lng": 92.72, "slope": 44.0},
-    {"id": "ESP32-NER-007", "name": "Tupul — Ijei River Rail Corridor",     "loc": "Noney, Manipur",            "lat": 24.83, "lng": 93.70, "slope": 46.8},
-    {"id": "ESP32-NER-008", "name": "Itanagar — Hollongi Highway Cut",      "loc": "Papum Pare, Arunachal",     "lat": 27.10, "lng": 93.62, "slope": 40.0},
-    {"id": "ESP32-NER-009", "name": "Agartala — Baramura Hill Range",       "loc": "West Tripura, Tripura",     "lat": 23.83, "lng": 91.28, "slope": 32.0},
-    {"id": "ESP32-NER-010", "name": "Imphal — Kangchup Road Section",       "loc": "Imphal West, Manipur",      "lat": 24.82, "lng": 93.94, "slope": 38.0},
+    {"id": "ESP32-NER-001", "name": "Gangtok — 32nd Mile NH10 Corridor", "loc": "East Sikkim, Sikkim",      "state": "Sikkim",     "lat": 27.18, "lng": 88.53, "slope": 42.5},
+    {"id": "ESP32-NER-002", "name": "Haflong — Jatinga Valley Escarpment", "loc": "Dima Hasao, Assam",        "state": "Assam",      "lat": 25.18, "lng": 93.02, "slope": 38.0},
+    {"id": "ESP32-NER-003", "name": "Cherrapunji — Shella Gorge Rim",      "loc": "East Khasi Hills, Meghalaya","state": "Meghalaya", "lat": 25.30, "lng": 91.70, "slope": 48.0},
+    {"id": "ESP32-NER-004", "name": "Guwahati — Khasi Hills NH6 Section",  "loc": "Kamrup, Assam",             "state": "Assam",      "lat": 26.14, "lng": 91.74, "slope": 35.0},
+    {"id": "ESP32-NER-005", "name": "Kohima — Dimapur NH2 Stretch",        "loc": "Kohima, Nagaland",          "state": "Nagaland",   "lat": 25.67, "lng": 94.11, "slope": 45.0},
+    {"id": "ESP32-NER-006", "name": "Aizawl — Reiek Tlang Ridge",          "loc": "Mamit, Mizoram",            "state": "Mizoram",    "lat": 23.73, "lng": 92.72, "slope": 44.0},
+    {"id": "ESP32-NER-007", "name": "Tupul — Ijei River Rail Corridor",     "loc": "Noney, Manipur",            "state": "Manipur",    "lat": 24.83, "lng": 93.70, "slope": 46.8},
+    {"id": "ESP32-NER-008", "name": "Itanagar — Hollongi Highway Cut",      "loc": "Papum Pare, Arunachal",     "state": "Arunachal Pradesh", "lat": 27.10, "lng": 93.62, "slope": 40.0},
+    {"id": "ESP32-NER-009", "name": "Agartala — Baramura Hill Range",       "loc": "West Tripura, Tripura",     "state": "Tripura",    "lat": 23.83, "lng": 91.28, "slope": 32.0},
+    {"id": "ESP32-NER-010", "name": "Imphal — Kangchup Road Section",       "loc": "Imphal West, Manipur",      "state": "Manipur",    "lat": 24.82, "lng": 93.94, "slope": 38.0},
 ]
 
 # Cache so we don't hammer Open-Meteo (Render free tier friendly)
@@ -364,8 +364,8 @@ async def get_stations():
         f"?latitude={lats}&longitude={lngs}"
         "&current=temperature_2m,relative_humidity_2m,precipitation,weather_code"
         "&hourly=soil_moisture_0_to_1cm"
-        "&daily=precipitation_sum"
-        "&past_days=1&forecast_days=1&timezone=Asia%2FKolkata"
+        "&daily=precipitation_sum,precipitation_probability_max"
+        "&past_days=1&forecast_days=3&timezone=Asia%2FKolkata"
     )
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "LandsafeAI/3.0"})
@@ -383,13 +383,29 @@ async def get_stations():
         try:
             # 24h rainfall = yesterday's daily sum + today so far (mm)
             daily = wx.get("daily", {}).get("precipitation_sum", []) or [0.0, 0.0]
-            rain24 = round(sum(x or 0.0 for x in daily[-2:]), 1)
+            rain24 = round(sum(x or 0.0 for x in daily[:2]), 1)  # [yesterday, today]
             # Latest satellite/model soil moisture (m3/m3, 0..1)
             sm_series = wx.get("hourly", {}).get("soil_moisture_0_to_1cm", []) or []
             soil = sm_series[-1] if sm_series else 0.0
             cur = wx.get("current", {}) or {}
             score, level = _station_risk(rain24, soil, st["slope"])
             tilt_est = round((score / 100.0) * 1.8, 2)  # expected creep proxy from model
+            # --- 72h forecast: predicted rain per day -> predicted risk ---
+            daily_rain = wx.get("daily", {}).get("precipitation_sum", []) or []
+            daily_prob = wx.get("daily", {}).get("precipitation_probability_max", []) or []
+            forecast = []
+            daily_times = wx.get("daily", {}).get("time", []) or []
+            for i in range(2, min(4, len(daily_rain))):  # entries 2,3 = tomorrow, day-after
+                fr = max(daily_rain[i] or 0.0, 0.0)
+                fs, fl = _station_risk(fr, soil, st["slope"])
+                forecast.append({
+                    "day": ("Tomorrow", "Day After")[i - 2],
+                    "date": daily_times[i] if i < len(daily_times) else "",
+                    "rain": round(fr, 1),
+                    "prob": daily_prob[i] if i < len(daily_prob) else None,
+                    "score": fs,
+                    "level": fl,
+                })
             out.append({
                 **st,
                 "rain": rain24,
@@ -400,6 +416,7 @@ async def get_stations():
                 "tilt": tilt_est,
                 "score": score,
                 "level": level,
+                "forecast": forecast,
                 "online": True,
             })
         except Exception as e:
