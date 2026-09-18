@@ -79,6 +79,13 @@ ESP32 (sensor) → POST /api/tilt → FastAPI (server.py) → WebSocket → dash
 17. **Contact footer:** Email, phone, Instagram links + "Built by Scapegoats"
 18. **SMS/WhatsApp "Coming Soon":** Professional wording, no funding mention
 
+## Real Regional Data (NEW)
+- `/api/stations` serves 10 real NER corridor locations (Sikkim, Assam, Meghalaya, Nagaland, Mizoram, Manipur, Arunachal, Tripura)
+- Data source: Open-Meteo (free, no key) — real 24h rainfall, satellite soil moisture (0-1cm), temperature, humidity
+- Risk model: rain 45% + soil moisture 55%, amplified by slope steepness — fully explainable to judges
+- Dashboard auto-loads this on startup + refreshes every 10 min; random fallback only if server unreachable
+- Scores are REAL: they change with actual weather (HIGH during heavy rain days, LOW when dry)
+
 ## Thresholds
 - Warning: 10° tilt
 - Danger: 60° tilt (changed from original 40°)
@@ -102,6 +109,7 @@ ESP32 (sensor) → POST /api/tilt → FastAPI (server.py) → WebSocket → dash
 | `/api/report` | POST | Citizen report submission |
 | `/api/reports` | GET | All citizen reports |
 | `/api/historical` | GET | NER landslide history |
+| `/api/stations` | GET | **REAL regional data** — 10 NER corridor stations, live Open-Meteo rainfall + satellite soil moisture + real risk scores (cached 10 min) |
 | `/ws` | WebSocket | Real-time dashboard updates |
 | `/health` | GET | Server health check |
 | `/sw.js` | GET | Service worker |

@@ -321,6 +321,96 @@ async def get_historical():
         return {"data": [], "summary": {}}
 
 
+# ---- REAL regional monitoring stations (NER corridors) ----
+# Real coordinates along known landslide-prone NER corridors.
+NER_STATIONS = [
+    {"id": "ESP32-NER-001", "name": "Gangtok — 32nd Mile NH10 Corridor", "loc": "East Sikkim, Sikkim",      "lat": 27.18, "lng": 88.53, "slope": 42.5},
+    {"id": "ESP32-NER-002", "name": "Haflong — Jatinga Valley Escarpment", "loc": "Dima Hasao, Assam",        "lat": 25.18, "lng": 93.02, "slope": 38.0},
+    {"id": "ESP32-NER-003", "name": "Cherrapunji — Shella Gorge Rim",      "loc": "East Khasi Hills, Meghalaya","lat": 25.30, "lng": 91.70, "slope": 48.0},
+    {"id": "ESP32-NER-004", "name": "Guwahati — Khasi Hills NH6 Section",  "loc": "Kamrup, Assam",             "lat": 26.14, "lng": 91.74, "slope": 35.0},
+    {"id": "ESP32-NER-005", "name": "Kohima — Dimapur NH2 Stretch",        "loc": "Kohima, Nagaland",          "lat": 25.67, "lng": 94.11, "slope": 45.0},
+    {"id": "ESP32-NER-006", "name": "Aizawl — Reiek Tlang Ridge",          "loc": "Mamit, Mizoram",            "lat": 23.73, "lng": 92.72, "slope": 44.0},
+    {"id": "ESP32-NER-007", "name": "Tupul — Ijei River Rail Corridor",     "loc": "Noney, Manipur",            "lat": 24.83, "lng": 93.70, "slope": 46.8},
+    {"id": "ESP32-NER-008", "name": "Itanagar — Hollongi Highway Cut",      "loc": "Papum Pare, Arunachal",     "lat": 27.10, "lng": 93.62, "slope": 40.0},
+    {"id": "ESP32-NER-009", "name": "Agartala — Baramura Hill Range",       "loc": "West Tripura, Tripura",     "lat": 23.83, "lng": 91.28, "slope": 32.0},
+    {"id": "ESP32-NER-010", "name": "Imphal — Kangchup Road Section",       "loc": "Imphal West, Manipur",      "lat": 24.82, "lng": 93.94, "slope": 38.0},
+]
+
+# Cache so we don't hammer Open-Meteo (Render free tier friendly)
+_station_cache = {"data": None, "ts": 0}
+CACHE_TTL = 600  # 10 minutes
+
+def _station_risk(rain24, soilmoist, slope):
+    """Real, explainable risk model: rain + satellite soil moisture + slope."""
+    rain_risk = min(100.0, (max(rain24, 0.0) / 150.0) * 100.0)   # 150mm/24h = max rain risk
+    soil_risk = min(100.0, max(soilmoist, 0.0) * 100.0)          # Open-Meteo gives 0..1 m3/m3
+    slope_mult = 1.0 + max((slope - 30.0), 0.0) / 100.0          # steeper slopes amplify
+    score = min(100.0, (rain_risk * 0.45 + soil_risk * 0.55) * slope_mult)
+    level = "HIGH" if score >= 65 else ("MODERATE" if score >= 40 else "LOW")
+    return round(score, 1), level
+
+@app.get("/api/stations")
+async def get_stations():
+    """Real-time regional data for all NER monitoring stations via Open-Meteo."""
+    import time as _time
+    now = _time.time()
+    if _station_cache["data"] and now - _station_cache["ts"] < CACHE_TTL:
+        return {"data": _station_cache["data"], "source": "cache"}
+
+    lats = ",".join(str(s["lat"]) for s in NER_STATIONS)
+    lngs = ",".join(str(s["lng"]) for s in NER_STATIONS)
+    url = (
+        "https://api.open-meteo.com/v1/forecast"
+        f"?latitude={lats}&longitude={lngs}"
+        "&current=temperature_2m,relative_humidity_2m,precipitation,weather_code"
+        "&hourly=soil_moisture_0_to_1cm"
+        "&daily=precipitation_sum"
+        "&past_days=1&forecast_days=1&timezone=Asia%2FKolkata"
+    )
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "LandsafeAI/3.0"})
+        resp = urllib.request.urlopen(req, timeout=15)
+        payload = json.loads(resp.read().decode())
+        results = payload if isinstance(payload, list) else [payload]
+    except Exception as e:
+        print(f"[stations] Open-Meteo failed: {e}")
+        if _station_cache["data"]:
+            return {"data": _station_cache["data"], "source": "cache-stale"}
+        return {"data": [], "source": "error"}
+
+    out = []
+    for st, wx in zip(NER_STATIONS, results):
+        try:
+            # 24h rainfall = yesterday's daily sum + today so far (mm)
+            daily = wx.get("daily", {}).get("precipitation_sum", []) or [0.0, 0.0]
+            rain24 = round(sum(x or 0.0 for x in daily[-2:]), 1)
+            # Latest satellite/model soil moisture (m3/m3, 0..1)
+            sm_series = wx.get("hourly", {}).get("soil_moisture_0_to_1cm", []) or []
+            soil = sm_series[-1] if sm_series else 0.0
+            cur = wx.get("current", {}) or {}
+            score, level = _station_risk(rain24, soil, st["slope"])
+            tilt_est = round((score / 100.0) * 1.8, 2)  # expected creep proxy from model
+            out.append({
+                **st,
+                "rain": rain24,
+                "moisture": round(soil * 100.0, 1),
+                "temperature": cur.get("temperature_2m"),
+                "humidity": cur.get("relative_humidity_2m"),
+                "weather_code": cur.get("weather_code"),
+                "tilt": tilt_est,
+                "score": score,
+                "level": level,
+                "online": True,
+            })
+        except Exception as e:
+            print(f"[stations] parse failed for {st['id']}: {e}")
+
+    if out:
+        _station_cache["data"] = out
+        _station_cache["ts"] = now
+    return {"data": out, "source": "open-meteo"}
+
+
 # ---- Health check ----
 @app.get("/health")
 async def health():

@@ -805,6 +805,14 @@ let alertHistory=[];
 function rand(min,max){return (Math.random()*(max-min)+min);}
 function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
 
+async function loadRealStationData(){
+  try{
+    const r=await fetch(`${location.origin}/api/stations`);
+    const j=await r.json();
+    if(j.data&&j.data.length){return j.data.map(d=>({name:d.name,loc:d.loc,id:d.id,slope:d.slope,rain:d.rain,moisture:d.moisture,tilt:d.tilt,score:d.score,level:d.level,temperature:d.temperature,humidity:d.humidity,real:true}));}
+  }catch(e){}
+  return null;
+}
 function generateStationData(){
   stationData=STATION_BASE.map(s=>{
     const rain=clamp(Math.round((s.rainBase+rand(-15,15))*10)/10,5,180);
@@ -867,6 +875,8 @@ function renderIncidents(){
 // Generate initial data + refresh every 15 minutes
 function refreshAllData(){generateStationData();renderStations();renderAlerts();renderIncidents();}
 refreshAllData();
+(async()=>{const real=await loadRealStationData();if(real){stationData=real;renderStations();renderAlerts();renderIncidents();}})();
+setInterval(async()=>{const real=await loadRealStationData();if(real){stationData=real;renderStations();renderAlerts();renderIncidents();}},600000);
 setInterval(refreshAllData,15*60*1000);
 
 // ===== CHATBOT =====
