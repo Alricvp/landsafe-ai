@@ -19,6 +19,13 @@ desktop.ini
 PROJECT_MEMORY.md
 .freebuff/
 
+# Local-only docs and dev scratch files
+*.pdf
+rendered_page.html
+script_0.js
+view_screenshots.html
+backend/screenshots.html
+
 # Local screenshots & design references (never commit personal photos)
 *.jpeg
 *.jpg
