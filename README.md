@@ -1,4 +1,4 @@
-## Landsafe AI — AI-Based Early Warning & Landslide Risk Monitoring for North Eastern India
+# Landsafe AI — AI-Based Early Warning & Landslide Risk Monitoring for North Eastern India
 
 > Real-time landslide risk monitoring platform built for the **Smart India Hackathon** — combining a low-cost IoT sensor node, live regional weather intelligence, and a public web dashboard with instant alerts.
 
