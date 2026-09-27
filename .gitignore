@@ -32,3 +32,4 @@ backend/screenshots.html
 *.png
 !docs/screenshots/*.png
 !docs/screenshots/*.jpeg
+terrasentinel-ai/
