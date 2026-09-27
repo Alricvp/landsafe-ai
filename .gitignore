@@ -13,3 +13,15 @@ build/
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# Internal project notes (not for public repo)
+PROJECT_MEMORY.md
+.freebuff/
+
+# Local screenshots & design references (never commit personal photos)
+*.jpeg
+*.jpg
+*.png
+!docs/screenshots/*.png
+!docs/screenshots/*.jpeg
