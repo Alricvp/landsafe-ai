@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FlareGuard — flare risk</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#0f1724; --line:#1e2a3a; --ink:#e6edf3; --muted:#8b97a8;
+    --low:#0F766E; --mod:#B7791F; --high:#B42318;
+    --up:#B42318; --down:#0F766E; --grid:#16202e;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  a{color:#5ab4ff}
+  .wrap{max-width:1100px;margin:0 auto;padding:18px 16px 60px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .brand{font-weight:700;letter-spacing:.2px}
+  .brand .sub{color:var(--muted);font-weight:400;margin-left:8px}
+  .beta{color:var(--muted);font-size:12px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 14px 16px}
+  h2{font-size:15px;margin:10px 0 6px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:760px){.row{grid-template-columns:1fr}}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+  .chip{font-size:12px;background:#0b1220;border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--ink);cursor:pointer;user-select:none}
+  .chip.sel{background:#13203a;border-color:#34557b;color:#cfe0f2}
+  .pillline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;background:#0b1220;border:1px solid var(--line)}
+  .pill.held{background:#1b2c44;border-color:#34557b;color:#cfe0f2}
+  form.plog{margin:8px 0 12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+  label{font-size:11px;color:var(--muted);display:block;margin-bottom:3px}
+  input,select{border:1px solid var(--line);background:#0b1220;color:var(--ink);border-radius:6px;padding:6px 8px;font:inherit}
+  button{background:#1e3a5f;border:1px solid #2c4a73;color:#e6edf3;border-radius:6px;padding:7px 14px;font:inherit;cursor:pointer}
+  button:hover{background:#274a72}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .head{display:grid;grid-template-columns:80px 1fr 1fr;gap:14px;align-items:flex-end}
+  .risk{font-size:42px;line-height:1;font-weight:700;letter-spacing:-.5px}
+  .band{font-size:13px;font-weight:600;margin-top:4px}
+  .note{font-size:12px;color:var(--muted)}
+  .mini{font-size:12px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  th{background:#0b1220;color:var(--muted);font-weight:500}
+  tr:nth-child(even) td{background:#0b1220}
+  .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px}
+  .tag.low{background:#0b241f;color:var(--low)}
+  .tag.mod{background:#241d10;color:var(--mod)}
+  .tag.high{background:#2e1410;color:var(--high)}
+  .pos{color:var(--up)}
+  .neg{color:var(--down)}
+  .list{margin:8px 0;padding-left:18px}
+  .list li{margin:3px 0}
+  .sim{font-size:12px;color:var(--muted);border-top:1px solid var(--line);margin-top:8px;padding-top:8px}
+  .err{background:#2e1410;border:1px solid #5a2620;color:#ffd0ce;border-radius:6px;padding:8px 10px;font-size:12px}
+  .info{font-size:12px;color:var(--muted)}
+  .spark{height:96px;display:block;width:100%}
+  .barwrap{display:flex;align-items:flex-end;gap:6px;height:120px;padding:4px 0}
+  .bar{flex:1 1 auto;min-width:6px;border-radius:3px 3px 0 0;position:relative;display:flex;align-items:flex-start;justify-content:center;color:#0f1724;font-size:10px;font-weight:700;padding-top:3px}
+  .bar.up{background:var(--up)}
+  .bar.down{background:var(--down)}
+  .bar span{pointer-events:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <div class="brand">FlareGuard<span class="sub">7-day IBD flare risk + trigger detective</span></div>
+    </div>
+    <div class="pillline">
+      <span class="pill" style="cursor:default">API URL: <strong id="urlLabel">http://localhost:8000</strong></span>
+      <span class="beta">Synthetic data only · not medical advice</span>
+    </div>
+  </div>
+
+  <div id="connect" class="panel" style="display:none">
+    <div class="err" id="errBox"></div>
+  </div>
+
+  <div class="panel">
+    <div class="pillline">
+      <span class="mini">Patient</span>
+      <select id="pid" style="padding:5px 8px;border:1px solid var(--line);background:#0b1220;color:var(--ink);border-radius:6px;font:inherit"></select>
+      <span class="mini" id="heldPill" style="cursor:default"></span>
+    </div>
+    <div class="chips" id="heldChips">
+      <span class="chip sel" data-held="1">Held out only</span>
+      <span class="chip" data-held="0">All patients</span>
+    </div>
+    <div class="pillline">
+      <span class="mini">Days shown:</span>
+      <input id="window" type="number" min="14" max="180" value="60" style="width:70px">
+      <button id="applyDays">Apply</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="head">
+      <div>
+        <div class="risk" id="riskNum">—</div>
+        <div class="band" id="band">—</div>
+        <div class="note" id="asof">—</div>
+      </div>
+      <div style="text-align:left">
+        <h2>What is driving risk today</h2>
+        <div class="mini">Percentage points vs. an average day</div>
+      </div>
+      <div>
+        <h2>What changed since yesterday</h2>
+        <div class="mini">Change in percentage points</div>
+      </div>
+    </div>
+    <div class="row">
+      <div id="drivers"></div>
+      <div id="changes"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>7-day flare risk</h2>
+    <div class="info" id="seriesInfo">—</div>
+    <svg class="spark" id="spark" viewBox="0 0 600 96" preserveAspectRatio="none"></svg>
+    <div class="list" id="flareList"></div>
+  </div>
+
+  <div class="panel">
+    <h2>This patient's likely triggers</h2>
+    <div class="list" id="trigList"></div>
+    <div style="max-height:180px;overflow:auto">
+      <table>
+        <thead><tr>
+          <th>Factor</th><th>Best lag (days)</th><th>Effect (symptom pts)</th>
+          <th>95% range</th><th>Adjusted p</th><th>Trigger?</th>
+        </tr></thead>
+        <tbody id="trigTable"></tbody>
+      </table>
+    </div>
+    <div class="sim" id="trigSim"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Demo check: triggers planted in the synthetic data</h2>
+    <div class="sim" id="truthBox"></div>
+    <div class="mini" id="truthNote" style="margin-top:4px"></div>
+  </div>
+
+  <div class="panel" style="margin-top:10px">
+    <h2 style="font-size:13px">Log a batch (demo inputs to the API)</h2>
+    <form class="plog" id="logform">
+      <label>Day (YYYY-MM-DD)</label><input id="f_day" type="text" placeholder="2025-01-01">
+      <label>Dairy servings</label><input id="f_dairy" type="number" step="1" min="0" value="1">
+      <label>Alcohol units</label><input id="f_alcohol" type="number" step="0.1" min="0" value="0">
+      <label>Stress (0-10)</label><input id="f_stress" type="number" step="0.1" min="0" max="10" value="4">
+      <label>Sleep hours</label><input id="f_sleep" type="number" step="0.1" min="0" max="24" value="7">
+      <label>Meds taken</label>
+      <select id="f_meds"><option value="1">Yes</option><option value="0">No</option></select>
+      <label>NSAID</label>
+      <select id="f_nsaid"><option value="0">No</option><option value="1">Yes</option></select>
+      <label>Symptom score</label><input id="f_symptom" type="number" step="0.1" min="0" max="10" value="3">
+    </form>
+    <div class="pillline">
+      <button id="postRisk">Send 14 days → /predict</button>
+      <button id="postTrig">Send 60 days → /triggers</button>
+      <span class="mini" id="postRes" style="margin-left:auto"></span>
+    </div>
+  </div>
+
+  <div class="info" style="margin-top:14px">
+    This demo is a static HTML look at the same dashboard layout as `app/dashboard.py`. It calls the
+    real FlareGuard API, so it needs the API running at `API_URL` (default `http://localhost:8000`).
+    Data is synthetic. Not medical advice.
+  </div>
+</div>
+
+<script>
+const API = (location.search.match(/api_url=([^&]+)/)||[])[1] || "http://localhost:8000";
+const BASE = API.replace(/\/+$,"");
+const BAND = {Low:"low",Moderate:"mod",High:"high"};
+const LABELS = {dairy_servings:"Dairy",alcohol_units:"Alcohol",stress:"Stress",
+  sleep_deficit:"Short sleep",meds_missed:"Missed medication",nsaid:"NSAID painkillers",
+  symptom_score:"Recent symptoms"};
+
+let patients=[], model=null, heldOnly=true, pid=null, report=null, trig=null;
+
+async function get(p,params){
+  const u=new URL(BASE+"/"+p.replace(/^\//,""),location.origin);
+  u.search=new URLSearchParams(params).toString();
+  const r=await fetch(u,{cache:"no-store"});
+  if(!r.ok) throw new Error(r.status+" "+r.statusText);
+  return r.json();
+}
+
+function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+function pct(x){return (x*100).toFixed(0)+"%"}
+function fmtDate(d){return new Date(d).toISOString().slice(0,10)}
+
+async function load(modelFlag){
+  try{
+    document.getElementById("connect").style.display="none";
+    patients=await get("/patients"); model=await get("/model");
+    renderModel(); renderPids();
+  }catch(e){ showErr("Can't reach the FlareGuard API at "+BASE+"<br>"+
+    "Start it:  `make api`  (or `bash scripts/server_setup.sh` then `bash scripts/run_api.sh`).<br>"+
+    "Then set API_URL if the API is on another machine."); }
+}
+
+function renderModel(){
+  const m=model.metrics;
+  document.getElementById("connect").innerHTML=
+    `<div class="info">Model check on <strong>${m.n_test_patients}</strong> unseen patients: `+
+    `AUC <strong>${m.auc.toFixed(2)}</strong> (today's symptoms alone: <strong>${m.baseline_auc_todays_symptoms.toFixed(2)}</strong>). `+
+    `Average precision <strong>${m.average_precision.toFixed(2)}</strong>, base rate <strong>${m.base_rate.toFixed(2)}</strong>.</div>`;
+  document.getElementById("connect").style.display="block";
+}
+
+function renderPids(){
+  const sel=document.getElementById("pid");
+  sel.innerHTML="";
+  if(!patients.length){ sel.innerHTML="<option>— no patients —</option>"; return; }
+  const pool=patients.filter(p=>p.held_out===heldOnly);
+  for(const p of pool){ const o=document.createElement("option"); o.value=p.patient_id; o.textContent=p.patient_id; sel.appendChild(o); }
+  if(pool.length) sel.value=pid||pool[0].patient_id;
+  const held=document.getElementById("heldPill");
+  held.textContent = heldOnly? "Held out only, "+pool.length+" patient(s)" : "All "+patients.length+" patient(s)";
+}
+
+async function loadPatient(){
+  const sel=document.getElementById("pid");
+  if(!sel.value) return;
+  pid=sel.value;
+  const days=Math.min(180,Math.max(14,parseInt(document.getElementById("window").value)||60));
+  try{
+    const r=await get("/patients/"+pid+"/risk",{days});
+    report=r;
+    renderReport(r,days);
+  }catch(e){ showErr("Risk: "+e.message); }
+  try{
+    trig=await get("/patients/"+pid+"/triggers");
+    renderTriggers(trig);
+  }catch(e){ showErr("Triggers: "+e.message); }
+  try{
+    const gt=await get("/patients/"+pid+"/ground-truth");
+    renderGroundTruth(gt);
+  }catch(e){ showErr("Ground truth: "+e.message); }
+}
+
+function renderReport(r,days){
+  document.getElementById("riskNum").textContent=pct(r.today.risk);
+  const b=r.today.band;
+  document.getElementById("band").innerHTML='<span class="tag '+BAND[b]+'">'+b+" risk</span>";
+  document.getElementById("asof").textContent="as of "+fmtDate(r.today.day);
+  document.getElementById("seriesInfo").textContent=
+    `${r.horizon_days}-day flare risk · ${r.series.length} days shown`;
+  renderSpark(r.series,r.horizon_days);
+  renderBarList("drivers",r.today.drivers,"contribution","Percentage points vs. an average day",false);
+  renderBarList("changes",r.today.changes,"delta","Change in percentage points",true);
+}
+
+function renderSpark(series,horizon){
+  const svg=document.getElementById("spark");
+  const W=600,H=96;
+  const min=series[0].risk, max=Math.max(...series.map(d=>d.risk));
+  const span=Math.max(0.001,max-min);
+  const flared=series.filter(d=>d.flare===true||d.flare===true);
+  let path="";
+  series.forEach((d,i)=>{
+    const x=(i/(Math.max(series.length-1,1)))*W;
+    const y=H-(d.risk-min)/span*(H-6)-3;
+    path += (i?"L":"M")+x.toFixed(1)+" "+y.toFixed(1)+" ";
+  });
+  let dots="";
+  flared.forEach(d=>{
+    const i=series.indexOf(d);
+    const x=(i/(Math.max(series.length-1,1)))*W;
+    dots+=`<circle cx="${x.toFixed(1)}" cy="${H-3}" r="4" fill="#B42318"><title>${fmtDate(d.day)}: flare day</title></circle>`;
+  });
+  svg.innerHTML=
+    `<rect x="0" y="0" width="${W}" height="${H}" fill="none"/>`+
+    `<path d="${path}" fill="none" stroke="#12303A" stroke-width="2"/>`+
+    dots+
+    `<text x="6" y="12" fill="#8b97a8" font-size="10">${fmtDate(series[0].day)}</text>`+
+    `<text x="${W-6}" y="12" fill="#8b97a8" font-size="10" text-anchor="end">${fmtDate(series[series.length-1].day)}</text>`;
+  const flareDays=series.filter(d=>d.flare===true||d.flare===true);
+  const flareList=document.getElementById("flareList");
+  flareList.innerHTML="";
+  if(flareDays.length){
+    flareList.appendChild(el("div",null,"Red dots mark days the patient was actually in a flare:"));
+    flareDays.forEach(d=>flareList.appendChild(el("div",null,fmtDate(d.day))));
+  }else flareList.appendChild(el("div",null,"No actual flare days shown in this window."));
+}
+
+function renderBarList(id,rows,key,title,allowNeg){
+  const wrap=document.getElementById(id);
+  wrap.innerHTML="";
+  if(!rows||!rows.length){ wrap.appendChild(el("div",null,"—")); return; }
+  const max=Math.max(...rows.map(r=>Math.abs(r[key])))||1;
+  const cols=Math.min(5,rows.length);
+  const elems=[];
+  rows.slice(0,cols).forEach(r=>{
+    const v=r[key];
+    const isUp=v>0;
+    const h=Math.max(4,Math.abs(v)/max*110);
+    const b=el("div","bar"+(isUp?" up":" down"));
+    b.style.height=h+"px";
+    b.style.minWidth="6px";
+    b.innerHTML='<span>'+pct(Math.abs(v))+'</span>';
+    const lab=el("div","mini");
+    lab.textContent=LABELS[r.factor]||r.factor;
+    const row=el("div",null,b,lab);
+    wrap.appendChild(row);
+  });
+  wrap.appendChild(el("div",null));
+}
+
+function renderTriggers(t){
+  const list=document.getElementById("trigList");
+  list.innerHTML="";
+  const found=t.triggers.filter(x=>x.is_trigger);
+  if(!found.length){ list.appendChild(el("div",null,"No clear triggers found in this patient's logs yet.")); }
+  else found.forEach(x=>list.appendChild(el("li",null,x.summary)));
+  const tb=document.getElementById("trigTable");
+  tb.innerHTML="";
+  t.triggers.forEach(x=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${LABELS[x.factor]||x.factor}</td>`+
+      `<td>${x.best_lag_days}</td>`+
+      `<td>${x.effect.toFixed(2)}</td>`+
+      `<td>${x.ci_low.toFixed(2)} to ${x.ci_high.toFixed(2)}</td>`+
+      `<td>${x.q_value.toExponential(2)}</td>`+
+      `<td>${x.is_trigger?"Yes":"No"}</td>`;
+    tb.appendChild(tr);
+  });
+  document.getElementById("trigSim").innerHTML="";
+}
+
+function renderGroundTruth(gt){
+  const box=document.getElementById("truthBox");
+  const planted=Object.keys(gt.planted_triggers||{});
+  const detected=report? (report._triggers||[]).map(x=>x.factor) : [];
+  box.innerHTML = "Planted: "+planted.join(", ")||"none";
+  let matched=0,extra=0;
+  if(report && report._triggers){
+    matched=planted.filter(p=>detected.includes(p)).length;
+    extra=detected.filter(d=>!planted.includes(d)).length;
+  }
+  document.getElementById("truthNote").textContent=
+    `Matched ${matched} of ${planted.length} planted triggers; ${extra} extra (static demo only — no triggers loaded yet).`;
+}
+
+function showErr(html){
+  const b=document.getElementById("connect");
+  b.style.display="block";
+  b.innerHTML=`<div class="err">${html}</div>`;
+}
+
+document.getElementById("heldChips").addEventListener("click",e=>{
+  const c=e.target.closest(".chip"); if(!c) return;
+  heldOnly= c.dataset.held==="1";
+  [...e.currentTarget.children].forEach(x=>x.classList.toggle("sel",x===c));
+  renderPids(); loadPatient();
+});
+document.getElementById("applyDays").addEventListener("click",loadPatient);
+document.getElementById("pid").addEventListener("change",loadPatient);
+document.getElementById("window").addEventListener("change",loadPatient);
+document.getElementById("postRisk").addEventListener("click",async()=>{
+  const rows=buildLogRows(14);
+  try{
+    const r=await fetch(BASE+"/predict",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({logs:rows,days:60})});
+    document.getElementById("postRes").textContent=r.ok?"ok":`${r.status}`;
+    if(r.ok){ const j=await r.json(); document.getElementById("riskNum").textContent=pct(j.today.risk);
+      document.getElementById("band").innerHTML='<span class="tag '+BAND[j.today.band]+'">'+j.today.band+" risk</span>";
+      document.getElementById("asof").textContent="as of "+fmtDate(j.today.day); }
+  }catch(e){ document.getElementById("postRes").textContent=e.message; }
+});
+document.getElementById("postTrig").addEventListener("click",async()=>{
+  const rows=buildLogRows(60);
+  try{
+    const r=await fetch(BASE+"/triggers",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({logs:rows})});
+    document.getElementById("postRes").textContent=r.ok?"ok":`${r.status}`;
+    if(r.ok){ trig=r; renderTriggers(r); }
+  }catch(e){ document.getElementById("postRes").textContent=e.message; }
+});
+
+function buildLogRows(n){
+  const rows=[];
+  const day=new Date("2025-01-01");
+  for(let i=0;i<n;i++){
+    const d=new Date(day); d.setDate(day.getDate()+i);
+    rows.push({
+      day:fmtDate(d),
+      dairy_servings:Math.max(0,Math.round(1+Math.sin(i)*0.6)),
+      alcohol_units:Math.max(0,Math.round(Math.sin(i*0.7)*0.5)),
+      stress:Math.max(0,Math.min(10,4+Math.sin(i*0.6)*1.2)),
+      sleep_hours:Math.max(3.5,Math.min(10,7.2-Math.sin(i*0.5)*0.6)),
+      meds_taken: i%3===0?0:1,
+      nsaid: i%10===0?1:0,
+      symptom_score:Math.max(0,Math.min(10,3+Math.sin(i*0.4)*1.2))
+    });
+  }
+  return rows;
+}
+
+window.addEventListener("DOMContentLoaded",()=>{
+  load(false);
+  setTimeout(loadPatient,250);
+});
+</script>
+</body>
+</html>

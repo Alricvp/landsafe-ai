@@ -1,0 +1,5 @@
+# Dashboard only. Run on a laptop/x86 box if streamlit won't install on s390x.
+streamlit>=1.30
+altair>=5.0
+pandas>=2.0
+requests>=2.31
