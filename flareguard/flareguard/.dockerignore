@@ -1,0 +1,9 @@
+.git
+.venv
+__pycache__
+*.pyc
+notebooks
+docs
+tests
+models/*.joblib
+data/synthetic/*.csv

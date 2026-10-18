@@ -1,0 +1,9 @@
+
+# FlareGuard
+.env
+.venv/
+__pycache__/
+*.pyc
+models/*.joblib
+data/synthetic/*.csv
+data/synthetic/*.json
