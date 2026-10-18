@@ -1,0 +1,12 @@
+[project]
+name = "blackbox-z-backend"
+version = "0.1.0"
+description = "BLACKBOX-Z machine flight recorder backend for LinuxONE"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+]
+
+[tool.uv]
+# LinuxONE deployment target: run with `uv run uvicorn blackbox_z_backend.main:app`

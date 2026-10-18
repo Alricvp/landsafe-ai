@@ -1,0 +1,207 @@
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SCAPEGOATS — Combined BOM</title>
+<style>
+  :root{
+    --bg:#0c1420; --card:#121c2b; --line:#1f2c3e; --ink:#e6edf3; --dim:#8b9bb0;
+    --own:#7ee787; --buy:#ffcb6b; --opt:#cfe3ff; --warn:#ff8b8b;
+    --accent:#ff9d3d; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 22px 60px}
+  header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+  h1{font-size:22px;font-weight:700;margin:0;letter-spacing:.2px}
+  .sub{color:var(--dim);font-size:14px}
+  .tabs{display:flex;gap:8px;margin:18px 0 14px;flex-wrap:wrap}
+  .tab{filter:brightness(.82);font-size:13px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--dim);cursor:pointer;transition:.15s}
+  .tab.on{background:var(--accent);color:#1a0e00;border-color:#ffb25a;font-weight:600}
+  h2{font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:18px 0 10px;font-weight:600}
+  .grid{display:grid;grid-template-columns:repeat(1fr);gap:12px}
+  @media(min-width:780px){.grid{grid-template-columns:repeat(2,1fr)}}
+  @media(min-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}
+  .card{background:linear-gradient(180deg,#101826,#0c1420);border:1px solid var(--line);border-radius:14px;padding:14px 14px 12px;transition:border-color .15s,transform .15s}
+  .card:hover{border-color:#2c3c54}
+  .tagrow{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  .tag{font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;letter-spacing:.04em;white-space:nowrap}
+  .t-own{background:#13351a;color:var(--own)}
+  .t-buy{background:#3a2a06;color:var(--buy)}
+  .t-opt{background:#0d2540;color:var(--opt)}
+  .card h3{margin:0 0 4px;font-size:15px;font-weight:600}
+  .card .use{font-size:12px;color:var(--dim);line-height:1.45;margin:0 0 8px}
+  .price{font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:600}
+  .note{font-size:11.5px;color:var(--dim);line-height:1.45;border-top:1px dashed var(--line);margin-top:8px;padding-top:7px}
+  .warn{color:var(--warn)}
+  ul{columns:1;list-style:none;padding:0;margin:6px 0 0;font-size:12.5px;line-height:1.5;color:var(--ink)}
+  ul li{padding-left:14px;position:relative}
+  ul li::before{content:"";position:absolute;left:0;top:7px;width:5px;height:5px;border-radius:50%;background:var(--accent)}
+  .zone{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 4px}
+  .zonebtn{flex:1;min-width:120px;font-size:13px;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--dim);cursor:pointer;text-align:center;transition:.15s}
+  .zonebtn.on{background:#16243a;border-color:#2f4460;color:var(--ink)}
+  footer{margin-top:26px;color:var(--dim);font-size:12px;line-height:1.5;border-top:1px solid var(--line);padding-top:12px}
+  .kv{font-family:var(--mono);font-size:12px;color:var(--dim)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0 4px;font-size:12px;color:var(--dim)}
+  .legend span b{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:middle}
+</style></head><body>
+<div class="wrap">
+  <header>
+    <h1>SCAPEGOATS — Combined Parts List</h1>
+    <span class="sub">Predictive-maintenance node + voice/Alexa-style box · ESP32-S3 · shared FastAPI dashboard/SMS backend</span>
+  </header>
+
+  <div class="legend">
+    <span><b style="background:#7ee787"></b>Owned already (reuse)</span>
+    <span><b style="background:#ffcb6b"></b>Buy / build</span>
+    <span><b style="background:#cfe3ff"></b>Optional</span>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab on" data-filter="all">All items</button>
+    <button class="tab" data-filter="own">Owned only</button>
+    <button class="tab" data-filter="buy">To buy</button>
+    <button class="tab" data-filter="onode">Monitor node</button>
+    <button class="tab" data-filter="voice">Voice box</button>
+    <button class="tab" data-filter="leave">Leave out</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="zone" id="zone"></div>
+
+  <footer>
+    <div class="kv">Shared software: FastAPI + WebSocket + PWA dashboard + SMS alerts (`backend/` + `pdm-repo/`) — both boxes talk to this same server. Edge-firmware pattern reused from `firmware/` + `machin/`.</div>
+    <div class="kv" style="margin-top:6px">Voice box isn't "Alexa" by itself — MA98357 gives the mic + I2S audio-out; voice = wake-word → STT → your server interprets → spoken reply via speaker/amp. If you mean real Alexa Voice Service (Amazon cloud), that's a separate path.</div>
+  </footer>
+</div>
+
+<script>
+const items = [
+  // Owned already
+  {id:"own-s3", cat:"own", zone:"both", title:"ESP32-S3 dev board",
+   use:"Controller + Wi-Fi + native I2S + USB-flash. The brain of both boxes (or of the monitor node if you keep them separate). If you only have a plain ESP32, the S3 is an upgrade, not a strict requirement.",
+   price:"owned", note:"Upgrade over plain ESP32 for the voice box (native I2S, enough headroom for wake-word framing)."},
+  {id:"own-mpu", cat:"own", zone:"onode", title:"MPU6050",
+   use:"3-axis accelerometer + gyro. Vibration orders (1X/2X/3X/4X/BPFO/BPFI) plus a free gyro-based speed/tach reading. This is the monitor node's vibration sensor.",
+   price:"owned", note:"You already own this — it's the main vibration sensor, not a new buy."},
+  {id:"own-ds18", cat:"own", zone:"onode", title:"DS18B20",
+   use:"Waterproof temp probe, ±0.5 °C. Bearing-housing temperature trend on the monitor node.",
+   price:"owned", note:"Owned already — reuse for the bearing-housing temp channel."},
+  {id:"own-backend", cat:"own", zone:"both", title:"FastAPI + WebSocket + PWA dashboard + SMS alerts",
+   use:"The live server/dashboard you already have. Monitor node streams vibration/temp/current; voice box sends voice commands and gets answers back (spoken reply / dashboard / SMS).",
+   price:"owned", note:"Both boxes share this backend — `backend/` + `pdm-repo/`. ~60% of the dashboard half of this PS is already done (swap tilt/moisture payloads for vibration features)."},
+  {id:"own-fw", cat:"own", zone:"onode", title:"Edge-firmware pattern (firmware/ + machin/)",
+   use:"Reuse the ESP32 firmware structure: cheap time-domain features (RMS/kurtosis/crest/peak-orders/trend) on the chip, full FFT/envelope + trend analysis on the server.",
+   price:"owned", note:"Already in your workspace — reuse the pattern, adapt for the S3 node."},
+  {id:"own-rig", cat:"own", zone:"onode", title:"Bench fan + small water pump (demo rig)",
+   use:"The machine you induce faults on: imbalance via a weight/tape on a blade, looseness via loosening a base bolt, bearing fault either by inducing it or by dry-running the pump (remove water, run 3–5 min) as the safe fallback.",
+   price:"owned", note:"Don't deliberately damage a bearing anyone cares about — dry-run pump is the safe fallback."},
+
+  // Buy / build — monitor node
+  {id:"buy-mic", cat:"buy", zone:"onode", title:"INMP441 I2S MEMS mic",
+   use:"The early-warning ultrasonic channel — hears the 12–20 kHz ring of an early bearing spall that the accelerometer can't reach (MPU6050 Nyquist = 500 Hz). This is the headline part of the whole project.",
+   price:"~₹300", note:"If you ever swap this for the MA98357's built-in mic, verify it covers 12–20 kHz first — otherwise you lose the main physics claim."},
+  {id:"buy-zmpt", cat:"buy", zone:"onode", title:"ZMPT101B AC current sensor",
+   use:"Supply current / power draw as a corroborating channel — if the machine is working harder it draws more, backing up a vibration alert.",
+   price:"~₹150", note:"Corroborating channel, not the main sensor."},
+  {id:"buy-mount", cat:"buy", zone:"onode", title:"Magnet mount + nylon standoffs + rigid adhesive",
+   use:"The actual measurement. The MPU6050 is a 4×4 mm chip on a breakout — it must be rigidly coupled to the bearing housing. A loosely mounted unit reads gravity and noise, not vibration.",
+   price:"~₹150", note:"Mounting IS the measurement — don't skip real time for this. Budget glue/tape/stands, not just the sensor."},
+  {id:"buy-alarm", cat:"buy", zone:"onode", title:"Buzzer + LED + jumper wires",
+   use:"Local alarm on the node — works with no network. The node buzzes before the server even sees the reading.",
+   price:"~₹200", note:"On-node alarm + visual indicator for the demo."},
+
+  // Optional
+  {id:"opt-tach", cat:"opt", zone:"onode", title:"₹150 optical tach sensor",
+   use:"Removes the 1X-vs-2X speed-estimation ambiguity on the real rig (the bug that once gave a 300 RPM estimate on a 1500 RPM machine).",
+   price:"~₹150", note:"Nice-to-have for the real rig — bench demo can run without it."},
+  {id:"opt-max9814", cat:"opt", zone:"onode", title:"MAX9814 (mic fallback)",
+   use:"If INMP441 is hard to source — fixed-gain AGC mic, no I2S needed, still covers the ultrasonic band.",
+   price:"~₹150", note:"Fallback only. INMP441 is the intended part; MAX9814 covers you if it's unavailable."},
+
+  // Voice box
+  {id:"buy-ma98357", cat:"buy", zone:"voice", title:"MA98357 (Ambient / AmbiMate MS-98357)",
+   use:"9-D sensor/control module: light, motion/PIR, temp/humidity, I2S mic, I2S audio-out, GPIO/I2C/I2S. Use it as the voice mic + speaker drive in one small module.",
+   price:"module (check price)", note:"It does NOT 'do Alexa' by itself. Voice = wake-word → STT → your server interprets → spoken reply out the speaker. Verify its mic covers the band you need if you ever use it as the monitor's mic too."},
+  {id:"buy-speaker", cat:"buy", zone:"voice", title:"Speaker + small I2S amp",
+   use:"Driven from the MA98357's I2S-out — gives spoken replies to the user: 'Pump 2: looseness suspected — re-torque the bolts.'",
+   price:"speaker+amp (check price)", note:"This is the voice output side. The MA98357 gives the audio-out signal; the speaker+amp makes people hear it."},
+  {id:"buy-power", cat:"buy", zone:"voice", title:"USB-C power supply / small PSU",
+   use:"Powers the S3 + the speaker amp for the voice box.",
+   price:"depends", note:"Size to S3 + amp draw — don't undersize the amp supply."},
+  {id:"buy-case", cat:"buy", zone:"voice", title:"Enclosure / case",
+   use:"Holds the mic + speaker + S3 — gives the 'Alexa-style box' look and protects the mic from handling noise.",
+   price:"depends", note:"Can be a reused box or a bought enclosure — the point is mic + speaker + board in one package."},
+  {id:"buy-voice-sw", cat:"buy", zone:"voice", title:"Voice layer — wake-word + STT (software, not a part)",
+   use:"The real piece that makes it voice: wake-word → speech-to-text → your FastAPI server interprets ('how's pump 2?', 'alert me if it faults') → answer back to speaker / dashboard / SMS.",
+   price:"software", note:"Cloud STT = easiest accuracy. Local fixed-command set = reliable offline fallback. Don't run a good STT fully on the S3 — it's too heavy for real accuracy. Real Alexa Voice Service = separate Amazon-cloud path (different account/device flow)."},
+
+  // Leave out
+  {id:"leave-soil", cat:"buy", zone:"leave", title:"Soil-water sensor — LEAVE OUT",
+   use:"Has no role in a machine-condition node. It belongs on Landsafe/AquaSentinel, where soil moisture is a real input.",
+   price:"don't buy", note:"A judge spotting an irrelevant part in the BOM assumes padding. Keep it off this list."},
+];
+
+const zoneNames = {
+  onode:"Monitor node",
+  voice:"Voice / Alexa-style box",
+  both:"Both",
+  leave:"Leave out"
+};
+
+function zoneLabel(it){
+  if(it.zone==="both") return "Both boxes";
+  return zoneNames[it.zone] || it.zone;
+}
+
+function renderGrid(filter){
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+  items.forEach(it=>{
+    if(filter==="all"){}
+    else if(filter==="own" && it.cat!=="own") return;
+    else if(filter==="buy" && it.cat==="own") return;
+    else if(filter.startsWith("onode") && !(it.zone==="onode"||it.zone==="both")) return;
+    else if(filter.startsWith("voice") && !(it.zone==="voice"||it.zone==="both")) return;
+    else if(filter.startsWith("leave") && it.zone!=="leave") return;
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.dataset.cat = it.cat;
+    card.dataset.zone = it.zone;
+    card.innerHTML = `
+      <div class="tagrow">
+        <span class="tag t-${it.cat}">${it.cat==="own"?"owned already":it.cat==="buy"?"buy / build":"optional"}</span>
+        <span class="tag" style="background:#16243a;color:var(--dim)">${zoneLabel(it)}</span>
+      </div>
+      <h3>${it.title}</h3>
+      <p class="use">${it.use}</p>
+      <div class="price">${it.price}</div>
+      <div class="note">${it.note}</div>`;
+    grid.appendChild(card);
+  });
+}
+
+function renderZone(){
+  const zone = document.getElementById("zone");
+  zone.innerHTML = "";
+  ["onode","voice","both","leave"].forEach(z=>{
+    const b = document.createElement("button");
+    b.className = "zonebtn" + (b.className);
+    b.textContent = zoneNames[z];
+    b.onclick = ()=> filterChange(z.startsWith("leave")?"leave":""+z);
+    zone.appendChild(b);
+  });
+}
+
+function filterChange(f){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on", t.dataset.filter===f));
+  renderGrid(f);
+}
+
+document.querySelectorAll(".tab").forEach(t=>{
+  t.onclick = ()=> filterChange(t.dataset.filter);
+});
+renderGrid("all");
+renderZone();
+</script>
+</body></html>

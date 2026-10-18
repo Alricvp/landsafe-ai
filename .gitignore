@@ -33,3 +33,17 @@ backend/screenshots.html
 !docs/screenshots/*.png
 !docs/screenshots/*.jpeg
 terraavani-ai/
+
+# Predictive maintenance - SEPARATE repo, deployed to Koyeb.
+# Must never be committed here or it pollutes the Landsafe project.
+pdm-repo/
+# Old in-place build of the predictive-maintenance project.
+# The live copy lives in pdm-repo/ (its own repo, deployed to Koyeb).
+backend/pdm_*.html
+backend/pdm_*.py
+backend/pdm_*.js
+backend/pdm_manifest.json
+backend/live_sim.py
+firmware/pred_maintenance/
+render.pdm.yaml
+machin/

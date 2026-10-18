@@ -1,0 +1,36 @@
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 52764)
+Traceback (most recent call last):
+  File "C:\Users\HP\Downloads\code\demo_server.py", line 141, in do_GET
+    self._send(200, f.read(), ct)
+  File "C:\Users\HP\Downloads\code\demo_server.py", line 123, in _send
+    self.wfile.write(body)
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 436, in handle
+    self.handle_one_request()
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 424, in handle_one_request
+    method()
+  File "C:\Users\HP\Downloads\code\demo_server.py", line 143, in do_GET
+    self._send(404, b"{}", "text/plain")
+  File "C:\Users\HP\Downloads\code\demo_server.py", line 122, in _send
+    self.end_headers()
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 538, in end_headers
+    self.flush_headers()
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python312\Lib\http\server.py", line 542, in flush_headers
+    self.wfile.write(b"".join(self._headers_buffer))
+  File "C:\Users\HP\AppData\Local\Programs\Python\Python312\Lib\socketserver.py", line 845, in write
+    self._sock.sendall(b)
+ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine
+----------------------------------------

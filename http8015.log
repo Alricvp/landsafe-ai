@@ -1,0 +1,45 @@
+::ffff:127.0.0.1 - - [02/Oct/2026 20:32:07] "GET /tpl_png/ HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [02/Oct/2026 20:39:01] "GET /sg_contact.png HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [02/Oct/2026 20:39:02] code 404, message File not found
+::ffff:127.0.0.1 - - [02/Oct/2026 20:39:02] "GET /favicon.ico HTTP/1.1" 404 -
+::ffff:127.0.0.1 - - [02/Oct/2026 20:41:35] "GET /tpl_contact.png HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [02/Oct/2026 20:42:47] "GET /imgs_contact.png HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [02/Oct/2026 20:59:14] "GET /img_arch.png HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [02/Oct/2026 21:06:17] "GET /img_arch.png HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [02/Oct/2026 21:07:59] "GET /img_arch.png HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [02/Oct/2026 21:11:35] "GET /logos_check.png HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [02/Oct/2026 21:20:23] "GET /megh_contact.png HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [02/Oct/2026 21:21:07] "GET /megh_contact.png?v=2 HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [02/Oct/2026 22:13:04] "GET /megh_contact.png HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [02/Oct/2026 22:13:21] "GET /megh_contact2.jpg HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [02/Oct/2026 22:13:22] code 404, message File not found
+::ffff:127.0.0.1 - - [02/Oct/2026 22:13:22] "GET /favicon.ico HTTP/1.1" 404 -
+::ffff:127.0.0.1 - - [02/Oct/2026 22:14:09] "GET /megh_contact.png?v=2 HTTP/1.1" 304 -
+::ffff:127.0.0.1 - - [02/Oct/2026 22:14:09] "GET /megh_contact2.jpg HTTP/1.1" 304 -
+::ffff:127.0.0.1 - - [02/Oct/2026 22:14:09] code 404, message File not found
+::ffff:127.0.0.1 - - [02/Oct/2026 22:14:09] "GET /favicon.ico HTTP/1.1" 404 -
+::ffff:127.0.0.1 - - [03/Oct/2026 06:38:43] "GET /sg_imgs/p1_x264_181x92.png HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [03/Oct/2026 06:38:43] code 404, message File not found
+::ffff:127.0.0.1 - - [03/Oct/2026 06:38:43] "GET /favicon.ico HTTP/1.1" 404 -
+::ffff:127.0.0.1 - - [03/Oct/2026 06:39:44] "GET /sg_imgs_contact.png HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [03/Oct/2026 06:46:41] "GET /megh_contact3.png HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [03/Oct/2026 06:48:58] "GET /megh_render/Slide5.PNG HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [03/Oct/2026 06:49:45] "GET /megh_render/Slide5.PNG HTTP/1.1" 304 -
+::ffff:127.0.0.1 - - [03/Oct/2026 06:49:45] code 404, message File not found
+::ffff:127.0.0.1 - - [03/Oct/2026 06:49:45] "GET /favicon.ico HTTP/1.1" 404 -
+::ffff:127.0.0.1 - - [03/Oct/2026 06:53:42] "GET /megh_56.jpg?v=1 HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [03/Oct/2026 06:53:42] code 404, message File not found
+::ffff:127.0.0.1 - - [03/Oct/2026 06:53:42] "GET /favicon.ico HTTP/1.1" 404 -
+::ffff:127.0.0.1 - - [03/Oct/2026 06:59:00] code 404, message File not found
+::ffff:127.0.0.1 - - [03/Oct/2026 06:59:00] "GET /favicon.ico HTTP/1.1" 404 -
+::ffff:127.0.0.1 - - [03/Oct/2026 06:59:00] "GET /megh_contact.png?v=2 HTTP/1.1" 304 -
+::ffff:127.0.0.1 - - [03/Oct/2026 06:59:00] "GET /megh_contact2.jpg HTTP/1.1" 304 -
+::ffff:127.0.0.1 - - [03/Oct/2026 06:59:00] "GET /megh_render/Slide5.PNG HTTP/1.1" 304 -
+::ffff:127.0.0.1 - - [03/Oct/2026 06:59:00] "GET /megh_56.jpg?v=1 HTTP/1.1" 304 -
+::ffff:127.0.0.1 - - [03/Oct/2026 07:06:30] "GET /megh_contact4.png?v=1 HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [03/Oct/2026 07:06:30] code 404, message File not found
+::ffff:127.0.0.1 - - [03/Oct/2026 07:06:30] "GET /favicon.ico HTTP/1.1" 404 -
+::ffff:127.0.0.1 - - [03/Oct/2026 07:07:58] "GET /megh_contact4.png?v=1790991478267 HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [03/Oct/2026 07:10:00] "GET /megh_contact4.png?v=2 HTTP/1.1" 200 -
+::ffff:127.0.0.1 - - [03/Oct/2026 07:10:00] code 404, message File not found
+::ffff:127.0.0.1 - - [03/Oct/2026 07:10:00] "GET /favicon.ico HTTP/1.1" 404 -
